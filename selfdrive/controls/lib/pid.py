@@ -1,7 +1,6 @@
 import numpy as np
 from common.numpy_fast import clip, interp
 from common.realtime import DT_CTRL
-from common.filter_simple import FirstOrderFilter
 
 def apply_deadzone(error, deadzone):
   if error > deadzone:
@@ -18,8 +17,6 @@ class PIDController():
     self._k_i = k_i  # integral gain
     self._k_d = k_d  # derivative gain
     self.k_f = k_f  # feedforward gain
-
-    self.error = FirstOrderFilter(0, 2, DT_CTRL, hz_mode=True)
 
     self.pos_limit = pos_limit
     self.neg_limit = neg_limit
@@ -61,8 +58,6 @@ class PIDController():
     self.e0, self.e1, self.e2 = 0.0, 0.0, 0.0
     self.bf1, self.bf2 = 0.0, 0.0
 
-    self.error.reset(0)
-
     self.p, self.p1, self.p2 = 0.0, 0.0, 0.0
     self.i, self.i1, self.i2 = 0.0, 0.0, 0.0
     self.d, self.d1, self.d2 = 0.0, 0.0, 0.0
@@ -77,7 +72,7 @@ class PIDController():
   def update(self, setpoint, measurement, last_output, speed=0.0, check_saturation=True, override=False, feedforward=0., deadzone=0., freeze_integrator=False):
     self.speed = speed
 
-    k_bf = 0.5
+    k_bf = 1.0
     _N = 20
     _Ts = DT_CTRL
     
@@ -88,7 +83,6 @@ class PIDController():
 
     self.e2, self.e1 = self.e1, self.e0    
     self.e0 = float(apply_deadzone(setpoint - measurement, deadzone))
-    self.e0 = self.error.update(self.e0)
 
     #back-feed / back-calculate integrator anti-windup
     self.bf2 = self.bf1
