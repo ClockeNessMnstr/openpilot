@@ -49,7 +49,7 @@ class LatControlPID():
       pid_log.i = self.pid.i
       pid_log.d = self.pid.d
       pid_log.f = self.pid.f
-      pid_log.output = self.output_steer
+      pid_log.output = self.pid.u0 - self.pid.d - self.pid.i - self.pid.p - self.pid.f
       pid_log.saturated = bool(self.pid.saturated)
 
     return self.output_steer, angle_steers_des, pid_log
