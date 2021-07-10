@@ -77,7 +77,7 @@ class PIDController():
   def update(self, setpoint, measurement, last_output, speed=0.0, check_saturation=True, override=False, feedforward=0., deadzone=0., freeze_integrator=False):
     self.speed = speed
 
-    k_bf = 1.0
+    k_bf = 0.5
     _N = 20
     _Ts = DT_CTRL
     
