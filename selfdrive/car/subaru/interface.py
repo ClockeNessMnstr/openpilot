@@ -99,10 +99,10 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.5
       ret.steerRatio = 17           # learns 17, 15-19 stock?
       ret.steerActuatorDelay = 0.0
-      ret.lateralTuning.pid.kf = 0.00009
-      ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kpV = [[9., 32.], [0.2, 0.6]]
+      ret.lateralTuning.pid.kf = 0.000045
+      ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kpV = [[9., 32.], [0.1, 0.3]]
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kiV = [[9., 32.], [0.1, 0.3]]
-      ret.lateralTuning.pid.kdBP, ret.lateralTuning.pid.kdV = [[9., 32.], [0.04, 0.12]]
+      ret.lateralTuning.pid.kdBP, ret.lateralTuning.pid.kdV = [[9., 32.], [0.02, 0.06]]
       #ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 14., 23.], [0., 14., 23.]]
       #ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.01, 0.065, 0.2], [0.001, 0.015, 0.025]]
 
