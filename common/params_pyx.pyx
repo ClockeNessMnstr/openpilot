@@ -8,7 +8,6 @@ import os
 import threading
 from common.basedir import BASEDIR
 
-
 cdef class ParamKeyType:
   PERSISTENT = c_ParamKeyType.PERSISTENT
   CLEAR_ON_MANAGER_START = c_ParamKeyType.CLEAR_ON_MANAGER_START

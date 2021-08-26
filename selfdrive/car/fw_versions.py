@@ -11,6 +11,7 @@ from cereal import car
 from selfdrive.car.fingerprints import FW_VERSIONS, get_attr_from_cars
 from selfdrive.car.isotp_parallel_query import IsoTpParallelQuery
 from selfdrive.car.toyota.values import CAR as TOYOTA
+from selfdrive.car.subaru.values import SUBARU_WMI
 from selfdrive.swaglog import cloudlog
 
 Ecu = car.CarParams.Ecu
@@ -66,6 +67,11 @@ VOLKSWAGEN_VERSION_RESPONSE = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER + 
 OBD_VERSION_REQUEST = b'\x09\x04'
 OBD_VERSION_RESPONSE = b'\x49\x04'
 
+SUBARU_VERSION_REQUEST = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER]) + \
+  p16(uds.DATA_IDENTIFIER_TYPE.APPLICATION_DATA_IDENTIFICATION)
+SUBARU_VERSION_RESPONSE = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER + 0x40]) + \
+  p16(uds.DATA_IDENTIFIER_TYPE.APPLICATION_DATA_IDENTIFICATION)
+
 DEFAULT_RX_OFFSET = 0x8
 VOLKSWAGEN_RX_OFFSET = 0x6a
 
@@ -119,6 +125,13 @@ REQUESTS = [
     "toyota",
     [TESTER_PRESENT_REQUEST, DEFAULT_DIAGNOSTIC_REQUEST, EXTENDED_DIAGNOSTIC_REQUEST, UDS_VERSION_REQUEST],
     [TESTER_PRESENT_RESPONSE, DEFAULT_DIAGNOSTIC_RESPONSE, EXTENDED_DIAGNOSTIC_RESPONSE, UDS_VERSION_RESPONSE],
+    DEFAULT_RX_OFFSET,
+  ),
+  # Subaru
+  (
+    "subaru",
+    [TESTER_PRESENT_REQUEST, SUBARU_VERSION_REQUEST],
+    [TESTER_PRESENT_RESPONSE, SUBARU_VERSION_RESPONSE],
     DEFAULT_RX_OFFSET,
   ),
   # Volkswagen
@@ -341,6 +354,12 @@ if __name__ == "__main__":
   print(f"VIN: {vin}")
   print("Getting VIN took %.3f s" % (time.time() - t))
   print()
+
+  for wmi in SUBARU_WMI:
+    if vin.startswith(wmi):
+      cloudlog.warning("Subaru 10 second ECU init delay")
+      time.sleep(10.)
+      break
 
   t = time.time()
   fw_vers = get_fw_versions(logcan, sendcan, 1, extra=extra, debug=args.debug, progress=True)

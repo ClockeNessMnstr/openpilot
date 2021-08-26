@@ -74,6 +74,17 @@ TogglesPanel::TogglesPanel(QWidget *parent) : QWidget(parent) {
                                   "../assets/offroad/icon_road.png",
                                   this));
 
+  toggles.append(new ParamControl("ManualParkingBrakeSNGToggle",
+                                  "Subaru Manual PB Stop and Go",
+                                  "Experimental feature to enable stop and go for Subaru Global models with manual handbrake. Models with electric parking brake should keep this disabled.",
+                                  "../assets/offroad/icon_speed_limit.png"));
+
+  toggles.append(new ParamControl("DisableDisengageOnGasToggle",
+                                  "Disable Disengage On Gas Press",
+                                  "Unsafe option to disable openpilot disengage on gas pedal press. For use only for WIP models which do not support disengage on gas pedal press yet.",
+                                  "../assets/offroad/icon_speed_limit.png"));
+
+
 #ifdef ENABLE_MAPS
   toggles.append(new ParamControl("NavSettingTime24h",
                                   "Show ETA in 24h format",
@@ -81,6 +92,7 @@ TogglesPanel::TogglesPanel(QWidget *parent) : QWidget(parent) {
                                   "../assets/offroad/icon_metric.png",
                                   this));
 #endif
+
 
   bool record_lock = Params().getBool("RecordFrontLock");
   record_toggle->setEnabled(!record_lock);
