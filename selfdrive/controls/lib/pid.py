@@ -92,7 +92,6 @@ class PIDController():
     self.p = (Kp*(    a0*self.e0 + a1*self.e1 + self.e2) / a0) -self.ku1*self.p1 - self.ku2*self.p2
     self.i = (Ki*_Ts*(a0*self.e0 -    self.e1)           / a0) -self.ku1*self.i1 - self.ku2*self.i2 - (k_bf*_Ts*(a0*self.bf1 - self.bf2)/ a0)
     self.d = (Kd*_N*(    self.e0 -  2*self.e1 + self.e2) / a0) -self.ku1*self.d1 - self.ku2*self.d2
-
     self.f = self.k_f*feedforward
 
     saturation = (self.p + self.i + self.d + self.f)
@@ -100,7 +99,6 @@ class PIDController():
     self._check_saturation(last_output, check_saturation, saturation)
 
     self.f = clip(self.f, self.neg_limit, self.pos_limit)
-
     control = self.p + self.i + self.d + self.f
     if self.convert is not None:
       control = self.convert(control, speed=self.speed)
