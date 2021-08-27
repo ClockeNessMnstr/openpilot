@@ -7,21 +7,21 @@ Ecu = car.CarParams.Ecu
 class CarControllerParams:
   def __init__(self, CP):
     self.STEER_STEP = 2                # how often we update the steer cmd
+    self.STEER_MAX = 2047
     self.STEER_DELTA_UP = 30           # torque increase per refresh, 0.8s to max
     self.STEER_DELTA_DOWN = 30         # torque decrease per refresh
     self.STEER_DRIVER_ALLOWANCE = 60   # allowed driver torque before start limiting (multiplied by driver multi)
     self.STEER_DRIVER_MULTIPLIER = 10  # from dbc
     self.STEER_DRIVER_FACTOR = 1       # weight driver torque lightly
-    self.STEER_EPS_MULTIPLIER = 10
+    self.STEER_EPS_MULTIPLIER = 10     #ratio of LKAS request and 
 
     if CP.carFingerprint == CAR.IMPREZA_2020:
       self.STEER_MAX = 1439
-    elif CP.carFingerprint == CAR.IMPREZA_3071:
+    if CP.carFingerprint == CAR.IMPREZA_3071:
       self.STEER_MAX = 3047
       self.STEER_DELTA_UP = 40
-      self.STEER_DELTA_DOWN = 70
-    else:
-      self.STEER_MAX = 2047
+      self.STEER_DELTA_DOWN = 60
+      self.STEER_EPS_MULTIPLIER = 22
 
 class CAR:
   ASCENT = "SUBARU ASCENT LIMITED 2019"
