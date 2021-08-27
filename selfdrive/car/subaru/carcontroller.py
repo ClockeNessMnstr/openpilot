@@ -39,8 +39,8 @@ class CarController():
     if (frame % self.p.STEER_STEP) == 0:
 
       apply_steer = int(round(actuators.steer * self.p.STEER_MAX))
-
-      # limits due to driver torque
+      self.torqueEPS_last = apply_steer + (CS.out.steeringTorqueEps * self.p.STEER_EPS_MULTIPLIER - apply_steer) * self.p.STEER_EPS_FACTOR
+      self.stock_apply_last = CS.out.stockSteeringTorqueRequest * self.p.STOCK_ES_FACTOR
 
       new_steer = int(round(apply_steer))
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, self.p)
@@ -57,8 +57,6 @@ class CarController():
         can_sends.append(subarucan.create_steering_control(self.packer, apply_steer, frame, self.p.STEER_STEP))
 
       self.apply_steer_last = apply_steer
-      self.torqueEPS_last = CS.out.steeringTorqueEps * self.p.STEER_EPS_MULTIPLIER
-      self.stock_apply_last = CS.out.stockSteeringTorqueRequest * self.p.STOCK_ES_FACTOR
 
     # *** stop and go ***
 
