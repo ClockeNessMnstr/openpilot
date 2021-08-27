@@ -8,6 +8,7 @@ class CarController():
   def __init__(self, dbc_name, CP, VM):
     self.apply_steer_last = 0
     self.torqueEPS_last = 0
+    self.stock_apply_last = 0
     self.es_distance_cnt = -1
     self.es_lkas_cnt = -1
     self.es_dashstatus_cnt = -1
@@ -28,7 +29,7 @@ class CarController():
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
 
   def get_last_output(self):
-    return self.torqueEPS_last / self.p.STEER_MAX
+    return (self.torqueEPS_last + self.stock_apply_last) / self.p.STEER_MAX
 
   def update(self, enabled, CS, frame, actuators, pcm_cancel_cmd, visual_alert, left_line, right_line, left_lane_depart, right_lane_depart):
 
@@ -48,6 +49,7 @@ class CarController():
       if not enabled:
         apply_steer = 0
         self.torqueEPS_last = 0
+        self.stock_apply_last = 0
 
       if CS.CP.carFingerprint in PREGLOBAL_CARS:
         can_sends.append(subarucan.create_preglobal_steering_control(self.packer, apply_steer, frame, self.p.STEER_STEP))
@@ -56,6 +58,7 @@ class CarController():
 
       self.apply_steer_last = apply_steer
       self.torqueEPS_last = CS.out.steeringTorqueEps * self.p.STEER_EPS_MULTIPLIER
+      self.stock_apply_last = CS.out.stockSteeringTorqueRequest
 
     # *** stop and go ***
 

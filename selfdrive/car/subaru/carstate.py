@@ -71,7 +71,6 @@ class CarState(CarStateBase):
     ret.steeringTorqueEps = cp.vl["Steering_Torque"]["Steer_Torque_Output"]
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD[self.car_fingerprint]
 
-
     if self.car_fingerprint == CAR.OUTBACK:
       ret.cruiseState.enabled = cp_body.vl["CruiseControl"]["Cruise_Activated"] != 0
       ret.cruiseState.available = cp_body.vl["CruiseControl"]["Cruise_On"] != 0
@@ -97,6 +96,7 @@ class CarState(CarStateBase):
     self.throttle_msg = copy.copy(cp.vl["Throttle"])
 
     if self.car_fingerprint in PREGLOBAL_CARS:
+      ret.stockSteeringTorqueRequest = cp_cam.vl["ES_LKAS"]["LKAS_Command"]
       self.cruise_button = cp_cam.vl["ES_Distance"]["Cruise_Button"]
       self.ready = not cp_cam.vl["ES_DashStatus"]["Not_Ready_Startup"]
       self.es_distance_msg = copy.copy(cp_cam.vl["ES_Distance"])
@@ -105,6 +105,7 @@ class CarState(CarStateBase):
     else:
       ret.steerWarning = cp.vl["Steering_Torque"]["Steer_Warning"] == 1
       ret.cruiseState.nonAdaptive = cp_cam.vl["ES_DashStatus"]["Conventional_Cruise"] == 1
+      ret.stockSteeringTorqueRequest = cp_cam.vl["ES_LKAS"]["LKAS_Output"]
       self.cruise_state = cp_cam.vl["ES_DashStatus"]["Cruise_State"]
       self.brake_pedal_msg = copy.copy(cp.vl["Brake_Pedal"])
       self.es_lkas_msg = copy.copy(cp_cam.vl["ES_LKAS_State"])
@@ -316,6 +317,7 @@ class CarState(CarStateBase):
 
   @staticmethod
   def get_cam_can_parser(CP):
+
     if CP.carFingerprint in PREGLOBAL_CARS:
       signals = [
         ("Cruise_Set_Speed", "ES_DashStatus", 0),
@@ -339,11 +341,14 @@ class CarState(CarStateBase):
         ("Signal6", "ES_Distance", 0),
         ("Cruise_Button", "ES_Distance", 0),
         ("Signal7", "ES_Distance", 0),
+
+        ("LKAS_Command", "ES_LKAS", 0),
       ]
 
       checks = [
         ("ES_DashStatus", 20),
         ("ES_Distance", 20),
+        ("ES_LKAS", 2),
       ]
     else:
       signals = [
@@ -389,11 +394,14 @@ class CarState(CarStateBase):
         ("LKAS_Right_Line_Visible", "ES_LKAS_State", 0),
         ("LKAS_Alert", "ES_LKAS_State", 0),
         ("Signal3", "ES_LKAS_State", 0),
+
+        ("LKAS_Output", "ES_LKAS", 0),
       ]
 
       checks = [
         ("ES_DashStatus", 10),
         ("ES_LKAS_State", 10),
+        ("ES_LKAS", 2),
       ]
 
       if CP.carFingerprint not in [CAR.CROSSTREK_2020H, CAR.OUTBACK]:
