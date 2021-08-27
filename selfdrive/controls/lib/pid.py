@@ -70,7 +70,7 @@ class PIDController():
     self.speed = speed
 
     k_bf = 1.0
-    _N = 20
+    _N = 6
     _Ts = DT_CTRL
     
     Kp, Ki, Kd = self.k_p, self.k_i, self.k_d
