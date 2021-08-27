@@ -58,7 +58,7 @@ class CarController():
 
       self.apply_steer_last = apply_steer
       self.torqueEPS_last = CS.out.steeringTorqueEps * self.p.STEER_EPS_MULTIPLIER
-      self.stock_apply_last = CS.out.stockSteeringTorqueRequest
+      self.stock_apply_last = CS.out.stockSteeringTorqueRequest * self.p.STOCK_ES_FACTOR
 
     # *** stop and go ***
 
