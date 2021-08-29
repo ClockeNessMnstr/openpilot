@@ -15,7 +15,7 @@ class CarControllerParams:
     self.STEER_DRIVER_FACTOR = 1       # weight driver torque lightly
     self.STEER_EPS_MULTIPLIER = 10     # ratio of LKAS request and output torque signals
     self.STEER_EPS_FACTOR = 2          # weight of EPS feedback
-    self.STOCK_ES_FACTOR = 2           # weight stock LKAS feedback
+    self.STOCK_ES_FACTOR = 1           # weight stock LKAS feedback
 
     if CP.carFingerprint == CAR.IMPREZA_2020:
       self.STEER_MAX = 1439
