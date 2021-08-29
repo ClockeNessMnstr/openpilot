@@ -29,7 +29,7 @@ class CarController():
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
 
   def get_last_output(self):
-    return (self.torqueEPS_last - self.stock_apply_last) / self.p.STEER_MAX
+    return (self.torqueEPS_last + self.stock_apply_last) / self.p.STEER_MAX
 
   def update(self, enabled, CS, frame, actuators, pcm_cancel_cmd, visual_alert, left_line, right_line, left_lane_depart, right_lane_depart):
 
