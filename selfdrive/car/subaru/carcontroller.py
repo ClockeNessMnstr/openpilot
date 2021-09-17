@@ -38,10 +38,10 @@ class CarController():
     # *** steering ***
     if (frame % self.p.STEER_STEP) == 0:
 
-      apply_steer = int(round(actuators.steer * self.p.STEER_MAX))
-      self.torqueEPS_last = apply_steer + (CS.out.steeringTorqueEps * self.p.STEER_EPS_MULTIPLIER - apply_steer) * self.p.STEER_EPS_FACTOR
       self.stock_apply_last = CS.out.stockSteeringTorqueRequest * self.p.STOCK_ES_FACTOR
-
+      apply_steer = int(round(actuators.steer * self.p.STEER_MAX + self.stock_apply_last))
+      self.torqueEPS_last = apply_steer + (CS.out.steeringTorqueEps * self.p.STEER_EPS_MULTIPLIER - apply_steer) * self.p.STEER_EPS_FACTOR
+      
       new_steer = int(round(apply_steer))
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, self.p)
       self.steer_rate_limited = new_steer != apply_steer
