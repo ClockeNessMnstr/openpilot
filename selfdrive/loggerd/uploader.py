@@ -29,6 +29,7 @@ UPLOAD_QLOG_QCAM_MAX_SIZE = 100 * 1e6  # MB
 allow_sleep = bool(os.getenv("UPLOADER_SLEEP", "1"))
 force_wifi = os.getenv("FORCEWIFI") is not None
 fake_upload = os.getenv("FAKEUPLOAD") is not None
+require_wifi = True
 
 
 def get_directory_sort(d):
@@ -251,7 +252,7 @@ def uploader_fn(exit_event):
     sm.update(0)
     offroad = params.get_bool("IsOffroad")
     network_type = sm['deviceState'].networkType if not force_wifi else NetworkType.wifi
-    if network_type == NetworkType.none:
+    if network_type == NetworkType.none or (require_wifi and not network_type == NetworkType.wifi):
       if allow_sleep:
         time.sleep(60 if offroad else 5)
       continue
