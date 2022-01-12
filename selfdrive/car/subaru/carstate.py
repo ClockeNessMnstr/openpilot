@@ -47,6 +47,7 @@ class CarState(CarStateBase):
 
     ret.steeringAngleDeg = cp.vl["Steering_Torque"]["Steering_Angle"]
     ret.steeringTorque = cp.vl["Steering_Torque"]["Steer_Torque_Sensor"]
+    ret.steeringTorqueEps = cp.vl["Steering_Torque"]["Steer_Torque_Output"]
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD[self.car_fingerprint]
 
     ret.cruiseState.enabled = cp.vl["CruiseControl"]["Cruise_Activated"] != 0
@@ -71,6 +72,21 @@ class CarState(CarStateBase):
       ret.steerWarning = cp.vl["Steering_Torque"]["Steer_Warning"] == 1
       ret.cruiseState.nonAdaptive = cp_cam.vl["ES_DashStatus"]["Conventional_Cruise"] == 1
       self.es_lkas_msg = copy.copy(cp_cam.vl["ES_LKAS_State"])
+      self.throttle_cruise = cp.vl["Throttle"]["Throttle_Cruise"]
+      self.es_cruise_throttle = cp_cam.vl["ES_Distance"]["Cruise_Throttle"]
+      self.wipers = cp.vl["BodyInfo"]["WIPERS"]
+
+      self.es_brake_pressure = cp_cam.vl["ES_Brake"]["Brake_Pressure"]
+      self.es_brake_active = cp_cam.vl["ES_Brake"]["Cruise_Brake_Active"]
+      self.es_cruise_rpm = cp_cam.vl["ES_Status"]["Cruise_RPM"]
+      self.tcm_rpm = cp.vl["Transmission"]["RPM"]
+
+      self.es_dashstatus_msg = copy.copy(cp_cam.vl["ES_DashStatus"])
+      self.es_lkas_state_msg = copy.copy(cp_cam.vl["ES_LKAS_State"])
+      self.es_brake_msg = copy.copy(cp_cam.vl["ES_Brake"])
+      self.es_status_msg = copy.copy(cp_cam.vl["ES_Status"])
+      self.cruise_control_msg = copy.copy(cp.vl["CruiseControl"])
+      self.brake_status_msg = copy.copy(cp.vl["Brake_Status"])
     self.es_distance_msg = copy.copy(cp_cam.vl["ES_Distance"])
 
     return ret
@@ -81,12 +97,17 @@ class CarState(CarStateBase):
     signals = [
       # sig_name, sig_address, default
       ("Steer_Torque_Sensor", "Steering_Torque", 0),
+      ("Steer_Torque_Output", "Steering_Torque", 0),
       ("Steering_Angle", "Steering_Torque", 0),
       ("Steer_Error_1", "Steering_Torque", 0),
+      ("Counter", "CruiseControl", 0),
+      ("Signal1", "CruiseControl", 0),
       ("Cruise_On", "CruiseControl", 0),
       ("Cruise_Activated", "CruiseControl", 0),
+      ("Signal2", "CruiseControl", 0),
       ("Brake_Pedal", "Brake_Pedal", 0),
       ("Throttle_Pedal", "Throttle", 0),
+      ("Throttle_Cruise", "Throttle", 0),
       ("LEFT_BLINKER", "Dashlights", 0),
       ("RIGHT_BLINKER", "Dashlights", 0),
       ("SEATBELT_FL", "Dashlights", 0),
@@ -98,6 +119,7 @@ class CarState(CarStateBase):
       ("DOOR_OPEN_FL", "BodyInfo", 1),
       ("DOOR_OPEN_RR", "BodyInfo", 1),
       ("DOOR_OPEN_RL", "BodyInfo", 1),
+      ("WIPERS", "BodyInfo", 0),
       ("Gear", "Transmission", 0),
     ]
 
@@ -126,7 +148,13 @@ class CarState(CarStateBase):
     if CP.carFingerprint not in PREGLOBAL_CARS:
       signals += [
         ("Steer_Warning", "Steering_Torque", 0),
+        ("RPM", "Transmission", 0),
+        ("Counter", "Brake_Status", 0),
+        ("Signal1", "Brake_Status", 0),
+        ("ES_Brake", "Brake_Status", 0),
+        ("Signal2", "Brake_Status", 0),
         ("Brake", "Brake_Status", 0),
+        ("Signal3", "Brake_Status", 0),
         ("UNITS", "Dashlights", 0),
       ]
 
@@ -192,8 +220,32 @@ class CarState(CarStateBase):
       ]
     else:
       signals = [
-        ("Cruise_Set_Speed", "ES_DashStatus", 0),
+        ("Counter", "ES_DashStatus", 0),
+        ("PCB_Off", "ES_DashStatus", 0),
+        ("LDW_Off", "ES_DashStatus", 0),
+        ("Signal1", "ES_DashStatus", 0),
+        ("Cruise_State_Msg", "ES_DashStatus", 0),
+        ("LKAS_State_Msg", "ES_DashStatus", 0),
+        ("Signal2", "ES_DashStatus", 0),
+        ("Cruise_Soft_Disable", "ES_DashStatus", 0),
+        ("Cruise_Status_Msg", "ES_DashStatus", 0),
+        ("Signal3", "ES_DashStatus", 0),
+        ("Cruise_Distance", "ES_DashStatus", 0),
+        ("Signal4", "ES_DashStatus", 0),
         ("Conventional_Cruise", "ES_DashStatus", 0),
+        ("Signal5", "ES_DashStatus", 0),
+        ("Cruise_Disengaged", "ES_DashStatus", 0),
+        ("Cruise_Activated", "ES_DashStatus", 0),
+        ("Signal6", "ES_DashStatus", 0),
+        ("Cruise_Set_Speed", "ES_DashStatus", 0),
+        ("Cruise_Fault", "ES_DashStatus", 0),
+        ("Cruise_On", "ES_DashStatus", 0),
+        ("Display_Own_Car", "ES_DashStatus", 0),
+        ("Brake_Lights", "ES_DashStatus", 0),
+        ("Car_Follow", "ES_DashStatus", 0),
+        ("Signal7", "ES_DashStatus", 0),
+        ("Far_Distance", "ES_DashStatus", 0),
+        ("Cruise_State", "ES_DashStatus", 0),
 
         ("Counter", "ES_Distance", 0),
         ("Signal1", "ES_Distance", 0),
@@ -228,11 +280,34 @@ class CarState(CarStateBase):
         ("LKAS_Right_Line_Visible", "ES_LKAS_State", 0),
         ("LKAS_Alert", "ES_LKAS_State", 0),
         ("Signal3", "ES_LKAS_State", 0),
+
+        ("Counter", "ES_Status", 0),
+        ("Signal1", "ES_Status", 0),
+        ("Cruise_Fault", "ES_Status", 0),
+        ("Cruise_RPM", "ES_Status", 0),
+        ("Signal2", "ES_Status", 0),
+        ("Cruise_Activated", "ES_Status", 0),
+        ("Brake_Lights", "ES_Status", 0),
+        ("Cruise_Hold", "ES_Status", 0),
+        ("Signal3", "ES_Status", 0),
+
+        ("Counter", "ES_Brake", 0),
+        ("Signal1", "ES_Brake", 0),
+        ("Brake_Pressure", "ES_Brake", 0),
+        ("Signal2", "ES_Brake", 0),
+        ("Cruise_Brake_Lights", "ES_Brake", 0),
+        ("Cruise_Brake_Fault", "ES_Brake", 0),
+        ("Cruise_Brake_Active", "ES_Brake", 0),
+        ("Cruise_Activated", "ES_Brake", 0),
+        ("Signal3", "ES_Brake", 0),
+
       ]
 
       checks = [
         ("ES_DashStatus", 10),
         ("ES_Distance", 20),
+        ("ES_Status", 20),
+        ("ES_Brake", 20),
         ("ES_LKAS_State", 10),
       ]
 

@@ -17,11 +17,32 @@ class CarControllerParams:
     self.STEER_DRIVER_MULTIPLIER = 10  # weight driver torque heavily
     self.STEER_DRIVER_FACTOR = 1       # from dbc
 
+  RPM_MIN = 0                   # min cruise_rpm
+  RPM_MAX = 3200                # max cruise_rpm
+  RPM_BASE = 600                # cruise_rpm idle, from stock drive
+  RPM_SCALE = 3000              # cruise_rpm, from testing
+
+  THROTTLE_MIN = 0              # min cruise_throttle
+  THROTTLE_MAX = 3400           # max cruise_throttle
+  THROTTLE_BASE = 1810          # cruise_throttle, from stock drive
+  THROTTLE_SCALE = 3000         # from testing
+
+  RPM_DELTA_UP = 50
+  RPM_DELTA_DOWN = 50
+
+  THROTTLE_DELTA_UP = 50
+  THROTTLE_DELTA_DOWN = 50
+
+  BRAKE_MIN = 0
+  BRAKE_MAX = 400
+  BRAKE_SCALE = 1000            # from testing
+
 class CAR:
   ASCENT = "SUBARU ASCENT LIMITED 2019"
   IMPREZA = "SUBARU IMPREZA LIMITED 2019"
   IMPREZA_2020 = "SUBARU IMPREZA SPORT 2020"
   FORESTER = "SUBARU FORESTER 2019"
+  CROSSTREK = "SUBARU CROSSTREK LIMITED 2018"
   FORESTER_PREGLOBAL = "SUBARU FORESTER 2017 - 2018"
   LEGACY_PREGLOBAL = "SUBARU LEGACY 2015 - 2018"
   OUTBACK_PREGLOBAL = "SUBARU OUTBACK 2015 - 2017"
@@ -30,6 +51,9 @@ class CAR:
 FINGERPRINTS = {
   CAR.IMPREZA: [{
     2: 8, 64: 8, 65: 8, 72: 8, 73: 8, 280: 8, 281: 8, 290: 8, 312: 8, 313: 8, 314: 8, 315: 8, 316: 8, 326: 8, 372: 8, 544: 8, 545: 8, 546: 8, 552: 8, 554: 8, 557: 8, 576: 8, 577: 8, 722: 8, 801: 8, 802: 8, 805: 8, 808: 8, 811: 8, 816: 8, 826: 8, 827: 8, 837: 8, 838: 8, 839: 8, 842: 8, 912: 8, 915: 8, 940: 8, 1614: 8, 1617: 8, 1632: 8, 1650: 8, 1657: 8, 1658: 8, 1677: 8, 1697: 8, 1722: 8, 1743: 8, 1759: 8, 1786: 5, 1787: 5, 1788: 8, 1809: 8, 1813: 8, 1817: 8, 1821: 8, 1840: 8, 1848: 8, 1924: 8, 1932: 8, 1952: 8, 1960: 8
+  }],
+  CAR.CROSSTREK: [{
+    2: 8, 64: 8, 65: 8, 72: 8, 73: 8, 256: 8, 280: 8, 281: 8, 290: 8, 312: 8, 313: 8, 314: 8, 315: 8, 316: 8, 326: 8, 372: 8, 544: 8, 545: 8, 546: 8, 554: 8, 557: 8, 576: 8, 577: 8, 722: 8, 801: 8, 802: 8, 805: 8, 808: 8, 811: 8, 826: 8, 837: 8, 838: 8, 839: 8, 842: 8, 912: 8, 915: 8, 940: 8, 1614: 8, 1617: 8, 1632: 8, 1650: 8, 1657: 8, 1658: 8, 1677: 8, 1697: 8, 1759: 8, 1786: 5, 1787: 5, 1788: 8
   }],
   CAR.IMPREZA_2020: [{
     2: 8, 64: 8, 65: 8, 72: 8, 73: 8, 280: 8, 281: 8, 282: 8, 290: 8, 312: 8, 313: 8, 314: 8, 315: 8, 316: 8, 326: 8, 372: 8, 544: 8, 545: 8, 546: 8, 552: 8, 554: 8, 557: 8, 576: 8, 577: 8, 722: 8, 801: 8, 802: 8, 803: 8, 805: 8, 808: 8, 816: 8, 826: 8, 837: 8, 838: 8, 839: 8, 842: 8, 912: 8, 915: 8, 940: 8, 1617: 8, 1632: 8, 1650: 8, 1677: 8, 1697: 8, 1722: 8, 1743: 8, 1759: 8, 1786: 5, 1787: 5, 1788: 8, 1809: 8, 1813: 8, 1817: 8, 1821: 8, 1840: 8, 1848: 8, 1924: 8, 1932: 8, 1952: 8, 1960: 8, 1968: 8, 1976: 8, 2015: 8, 2016: 8, 2024: 8
@@ -74,7 +98,6 @@ FW_VERSIONS = {
   },
   CAR.IMPREZA: {
     (Ecu.esp, 0x7b0, None): [
-      b'\x7a\x94\x3f\x90\x00',
       b'\xa2 \x185\x00',
       b'\xa2 \x193\x00',
       b'z\x94.\x90\x00',
@@ -85,7 +108,6 @@ FW_VERSIONS = {
       b'z\x94\x08\x90\x00',
     ],
     (Ecu.eps, 0x746, None): [
-      b'\x7a\xc0\x0c\x00',
       b'z\xc0\b\x00',
       b'\x8a\xc0\x00\x00',
       b'z\xc0\x04\x00',
@@ -93,7 +115,6 @@ FW_VERSIONS = {
       b'\x8a\xc0\x10\x00',
     ],
     (Ecu.fwdCamera, 0x787, None): [
-      b'\x00\x00\x64\xb5\x1f\x40\x20\x0e',
       b'\x00\x00d\xdc\x1f@ \x0e',
       b'\x00\x00e\x1c\x1f@ \x14',
       b'\x00\x00d)\x1f@ \a',
@@ -105,7 +126,6 @@ FW_VERSIONS = {
       b'\x00\x00c\xf4\x00\x00\x00\x00',
     ],
     (Ecu.engine, 0x7e0, None): [
-      b'\xaa\x61\x66\x73\x07',
       b'\xbeacr\a',
       b'\xc5!`r\a',
       b'\xaa!ds\a',
@@ -125,7 +145,6 @@ FW_VERSIONS = {
       b'\xaa!aw\x07',
     ],
     (Ecu.transmission, 0x7e1, None): [
-      b'\xe3\xe5\x46\x31\x00',
       b'\xe4\xe5\x061\x00',
       b'\xe5\xf5\x04\x00\x00',
       b'\xe3\xf5G\x00\x00',
@@ -356,6 +375,23 @@ FW_VERSIONS = {
       b'\xbb\xfb\xe0`\000',
     ],
   },
+  CAR.CROSSTREK: {
+    (Ecu.esp, 0x7b0, None): [
+      b'\x7a\x94\x3f\x90\x00',
+    ],
+    (Ecu.eps, 0x746, None): [
+      b'\x7a\xc0\x0c\x00',
+    ],
+    (Ecu.fwdCamera, 0x787, None): [
+      b'\x00\x00\x64\xb5\x1f\x40\x20\x0e',
+    ],
+    (Ecu.engine, 0x7e0, None): [
+      b'\xaa\x61\x66\x73\x07',
+    ],
+    (Ecu.transmission, 0x7e1, None): [
+      b'\xe3\xe5\x46\x31\x00',
+    ],
+  },
 }
 
 STEER_THRESHOLD = {
@@ -363,6 +399,7 @@ STEER_THRESHOLD = {
   CAR.IMPREZA: 80,
   CAR.IMPREZA_2020: 80,
   CAR.FORESTER: 80,
+  CAR.CROSSTREK: 80,
   CAR.FORESTER_PREGLOBAL: 75,
   CAR.LEGACY_PREGLOBAL: 75,
   CAR.OUTBACK_PREGLOBAL: 75,
@@ -374,6 +411,7 @@ DBC = {
   CAR.IMPREZA: dbc_dict('subaru_global_2017_generated', None),
   CAR.IMPREZA_2020: dbc_dict('subaru_global_2017_generated', None),
   CAR.FORESTER: dbc_dict('subaru_global_2017_generated', None),
+  CAR.CROSSTREK: dbc_dict('subaru_global_2017_generated', None),
   CAR.FORESTER_PREGLOBAL: dbc_dict('subaru_forester_2017_generated', None),
   CAR.LEGACY_PREGLOBAL: dbc_dict('subaru_outback_2015_generated', None),
   CAR.OUTBACK_PREGLOBAL: dbc_dict('subaru_outback_2015_generated', None),
