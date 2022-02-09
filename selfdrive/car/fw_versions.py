@@ -92,13 +92,6 @@ SUBARU_VERSION_RESPONSE = bytes([uds.SERVICE_TYPE.READ_DATA_BY_IDENTIFIER + 0x40
 
 # brand, request, response, response offset
 REQUESTS = [
-  # Subaru
-  (
-    "subaru",
-    [TESTER_PRESENT_REQUEST, SUBARU_VERSION_REQUEST],
-    [TESTER_PRESENT_RESPONSE, SUBARU_VERSION_RESPONSE],
-    DEFAULT_RX_OFFSET,
-  ),
   # Hyundai
   (
     "hyundai",
@@ -136,6 +129,13 @@ REQUESTS = [
     "toyota",
     [TESTER_PRESENT_REQUEST, DEFAULT_DIAGNOSTIC_REQUEST, EXTENDED_DIAGNOSTIC_REQUEST, UDS_VERSION_REQUEST],
     [TESTER_PRESENT_RESPONSE, DEFAULT_DIAGNOSTIC_RESPONSE, EXTENDED_DIAGNOSTIC_RESPONSE, UDS_VERSION_RESPONSE],
+    DEFAULT_RX_OFFSET,
+  ),
+  # Subaru
+  (
+    "subaru",
+    [TESTER_PRESENT_REQUEST, SUBARU_VERSION_REQUEST],
+    [TESTER_PRESENT_RESPONSE, SUBARU_VERSION_RESPONSE],
     DEFAULT_RX_OFFSET,
   ),
   # Volkswagen
@@ -381,6 +381,12 @@ if __name__ == "__main__":
   t = time.time()
   fw_vers = get_fw_versions(logcan, sendcan, 1, extra=extra, debug=args.debug, progress=True)
   _, candidates = match_fw_to_car(fw_vers)
+
+  if candidates == set():
+    cloudlog.warning("No matching candidates found, retrying fingerprinting")
+    time.sleep(10.)
+    fw_vers = get_fw_versions(logcan, sendcan, 1, extra=extra, debug=args.debug, progress=True)
+    _, candidates = match_fw_to_car(fw_vers)
 
   print()
   print("Found FW versions")

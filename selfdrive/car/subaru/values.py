@@ -19,11 +19,16 @@ class CAR:
   ASCENT = "SUBARU ASCENT LIMITED 2019"
   IMPREZA = "SUBARU IMPREZA LIMITED 2019"
   IMPREZA_2020 = "SUBARU IMPREZA SPORT 2020"
+  CROSSTREK_2020H = "SUBARU CROSSTREK LIMITED 2020 HYBRID"
   FORESTER = "SUBARU FORESTER 2019"
   FORESTER_PREGLOBAL = "SUBARU FORESTER 2017 - 2018"
-  LEGACY_PREGLOBAL = "SUBARU LEGACY 2015 - 2018"
+  LEGACY_PREGLOBAL = "SUBARU LEGACY 2015 - 2017"
+  LEGACY_PREGLOBAL_2018 = "SUBARU LEGACY 2018 - 2019"
+  LEVORG_PREGLOBAL = "SUBARU LEVORG 2016"
+  OUTBACK = "SUBARU OUTBACK 2020"
   OUTBACK_PREGLOBAL = "SUBARU OUTBACK 2015 - 2017"
   OUTBACK_PREGLOBAL_2018 = "SUBARU OUTBACK 2018 - 2019"
+  WRX_PREGLOBAL = "SUBARU WRX 2018"
 
 FINGERPRINTS = {
   CAR.IMPREZA_2020: [{
@@ -159,12 +164,31 @@ FW_VERSIONS = {
       b'\xca!`0\a',
       b'\xcc\"f0\a',
       b'\xcc!fp\a',
+      b'\xca!a0\x07',
     ],
     (Ecu.transmission, 0x7e1, None): [
       b'\xe6\xf5\004\000\000',
       b'\xe6\xf5$\000\000',
       b'\xe7\xf6B0\000',
       b'\xe7\xf5D0\000',
+    ],
+  },
+  CAR.CROSSTREK_2020H: {
+    # 2020 Crosstrek Hybrid - UDM / @revity
+    # 2020 Crosstrek Hybrid - UDM / @Dave32
+    # Ecu, addr, subaddr: ROM ID
+    (Ecu.esp, 0x7b0, None): [
+      b'\xa2 \x19e\x01',
+    ],
+    (Ecu.eps, 0x746, None): [
+      b'\x9a\xc2\x01\x00',
+    ],
+    (Ecu.fwdCamera, 0x787, None): [
+      b'\x00\x00el\x1f@ #',
+    ],
+    (Ecu.engine, 0x7e0, None): [
+      b'\xd7!`@\x07',
+      b'\xd7!`p\a',
     ],
   },
   CAR.FORESTER: {
@@ -210,7 +234,7 @@ FW_VERSIONS = {
     (Ecu.fwdCamera, 0x787, None): [
       b'\x00\x00\x64\x35\x1f\x40\x20\x09',
       b'\x00\x00c\xe9\x1f@ \x03',
-      b'\x00\x00d\xd3\x1f@ \t'
+      b'\x00\x00d\xd3\x1f@ \t',
     ],
     (Ecu.engine, 0x7e0, None): [
       b'\xba"@p\a',
@@ -254,6 +278,86 @@ FW_VERSIONS = {
       b'\xbf\xfb\xc0\x80\x00',
       b'\xbd\xf2\x00`\x00',
       b'\xbf\xf2\000\x80\000',
+    ],
+  },
+  CAR.LEGACY_PREGLOBAL_2018: {
+    # 2018 Subaru Legacy 2.5i Premium - UDM / @kram322
+    # 2018 Subaru Legacy - UDM / @Hassan
+    # Ecu, addr, subaddr: ROM ID
+    (Ecu.esp, 0x7b0, None): [
+      b'\x8b\x97D\x00',
+    ],
+    (Ecu.eps, 0x746, None): [
+      b'{\xb0\x00\x00',
+    ],
+    (Ecu.fwdCamera, 0x787, None): [
+      b'\x00\x00df\x1f@ \n',
+      b'\x00\x00df\x00\x00\x00\x00',
+    ],
+    (Ecu.engine, 0x7e0, None): [
+      b'\xb5\"@p\a',
+      b'\x01EB4S100C\x00\x00\x00\x00\x00\x00\x00\x00',
+    ],
+    (Ecu.transmission, 0x7e1, None): [
+      b'\xbc\xf2\x00\x81\x00',
+      b'\xf1\x00\xa4\x10@',
+    ],
+  },
+  CAR.LEVORG_PREGLOBAL: {
+     # 2016 Subaru Levorg / @jpgnz
+     # Ecu, addr, subaddr: ROM ID
+     (Ecu.esp, 0x7b0, None): [
+       b'j\x9c\x92\002',
+     ],
+     (Ecu.eps, 0x746, None): [
+       b'Z\xb0\000\000',
+     ],
+     (Ecu.fwdCamera, 0x787, None): [
+       b'\000\000c\xd3\000\000\000\000',
+     ],
+     (Ecu.engine, 0x7e0, None): [
+       b'\xf1\x82\xa6\000\xa1t\a',
+     ],
+     (Ecu.transmission, 0x7e1, None): [
+       b'\xcb\xd9\000p\000',
+     ],
+  },
+  CAR.OUTBACK: {
+    # 2020 Outback 2.4 XT Limited - UDM / @KingChalupa
+    # 2020 Outback 2.5i Premium - UDM / @ursubpar
+    # 2021 Outback - UDM / @Frye - FL
+    # 2020 Outback 2.4 Touring XT  - UDM / @chrissantamaria
+    # 2022 Outback - UDM / @atran913
+    # Ecu, addr, subaddr: ROM ID
+    (Ecu.esp, 0x7b0, None): [
+      b'\xa1  \x06\x01',
+      b'\xa1  \a\x00',
+      b'\xa1  \b\001',
+      b'\xa1  \x06\x00',
+      b'\xa1 "\t\x01',
+    ],
+    (Ecu.eps, 0x746, None): [
+      b'\x9b\xc0\x10\x00',
+      b'\x9b\xc0\x20\x00',
+      b'\x1b\xc0\x10\x00',
+    ],
+    (Ecu.fwdCamera, 0x787, None): [
+      b'\x00\x00eJ\x00\x1f@ \x19\x00',
+      b'\000\000e\x80\000\037@ \031\000',
+      b'\x00\x00e\x9a\x00\x1f@ 1\x00',
+    ],
+    (Ecu.engine, 0x7e0, None): [
+      b'\xbc,\xa0q\x07',
+      b'\xbc\"`@\a',
+      b'\xde"`0\a',
+      b'\xf1\x82\xbc,\xa0q\a',
+      b'\xf1\x82\xe3,\xa0@\x07',
+    ],
+    (Ecu.transmission, 0x7e1, None): [
+      b'\xa5\xfe\xf7@\x00',
+      b'\xa5\xf6D@\x00',
+      b'\xa5\xfe\xf6@\x00',
+      b'\xa7\x8e\xf40\x00',
     ],
   },
   CAR.OUTBACK_PREGLOBAL: {
@@ -353,28 +457,65 @@ FW_VERSIONS = {
       b'\xbb\xfb\xe0`\000',
     ],
   },
+  CAR.WRX_PREGLOBAL: {
+    # 2018 Subaru WRX / @cferra
+    # 2016 Subaru WRX / @Hexinator
+    # Ecu, addr, subaddr: ROM ID
+    (Ecu.esp, 0x7b0, None): [
+      b'\x8a\x95R\x01',
+      b'j\x95R\x02',
+    ],
+    (Ecu.eps, 0x746, None): [
+      b'z\xb0\x00\x00',
+      b'Z\xb0\x00\x00',
+    ],
+    (Ecu.fwdCamera, 0x787, None): [
+      b'\x00\x00d\xae\x1f@ \r',
+      b'\x00\x00c\x93\x1f@\x10\r',
+    ],
+    (Ecu.engine, 0x7e0, None): [
+      b'\xf1\x82\xb2)\xa0P\x97',
+      b'\xf1\x82\xa6)\xa0P\x07',
+    ],
+    (Ecu.transmission, 0x7e1, None): [
+      b'\xcd\xfd\xd0\x80\x00',
+      b'\xcb\xfd\xd0\x80\x00',
+    ],
+  },
 }
+
 
 STEER_THRESHOLD = {
   CAR.ASCENT: 80,
   CAR.IMPREZA: 80,
   CAR.IMPREZA_2020: 80,
+  CAR.CROSSTREK_2020H: 80,
   CAR.FORESTER: 80,
   CAR.FORESTER_PREGLOBAL: 75,
   CAR.LEGACY_PREGLOBAL: 75,
+  CAR.LEGACY_PREGLOBAL_2018: 75,
+  CAR.LEVORG_PREGLOBAL: 75,
+  CAR.OUTBACK: 80,
   CAR.OUTBACK_PREGLOBAL: 75,
   CAR.OUTBACK_PREGLOBAL_2018: 75,
+  CAR.WRX_PREGLOBAL: 75,
 }
 
 DBC = {
   CAR.ASCENT: dbc_dict('subaru_global_2017_generated', None),
   CAR.IMPREZA: dbc_dict('subaru_global_2017_generated', None),
   CAR.IMPREZA_2020: dbc_dict('subaru_global_2017_generated', None),
+  CAR.CROSSTREK_2020H: dbc_dict('subaru_global_2020_hybrid_generated', None),
   CAR.FORESTER: dbc_dict('subaru_global_2017_generated', None),
   CAR.FORESTER_PREGLOBAL: dbc_dict('subaru_forester_2017_generated', None),
   CAR.LEGACY_PREGLOBAL: dbc_dict('subaru_outback_2015_generated', None),
+  CAR.LEGACY_PREGLOBAL_2018: dbc_dict('subaru_outback_2019_generated', None),
+  CAR.LEVORG_PREGLOBAL: dbc_dict('subaru_forester_2017_generated', None),
+  CAR.OUTBACK: dbc_dict('subaru_global_2017_generated', None),
   CAR.OUTBACK_PREGLOBAL: dbc_dict('subaru_outback_2015_generated', None),
   CAR.OUTBACK_PREGLOBAL_2018: dbc_dict('subaru_outback_2019_generated', None),
+  CAR.WRX_PREGLOBAL: dbc_dict('subaru_forester_2017_generated', None),
 }
 
-PREGLOBAL_CARS = [CAR.FORESTER_PREGLOBAL, CAR.LEGACY_PREGLOBAL, CAR.OUTBACK_PREGLOBAL, CAR.OUTBACK_PREGLOBAL_2018]
+PREGLOBAL_CARS = [CAR.FORESTER_PREGLOBAL, CAR.LEGACY_PREGLOBAL, CAR.LEGACY_PREGLOBAL_2018, CAR.LEVORG_PREGLOBAL, CAR.OUTBACK_PREGLOBAL, CAR.OUTBACK_PREGLOBAL_2018, CAR.WRX_PREGLOBAL]
+GLOBAL_CARS_SNG = [CAR.ASCENT, CAR.IMPREZA, CAR.IMPREZA_2020, CAR.FORESTER]
