@@ -36,6 +36,8 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20.], [0., 20.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.0025, 0.1], [0.00025, 0.01]]
 
+    if candidate == CAR.IMPREZA:
+      ret.safetyConfigs[0].safetyParam = 2
     if candidate == CAR.IMPREZA or candidate == CAR.IMPREZA_2020:
       ret.mass = 1568. + STD_CARGO_KG
       ret.wheelbase = 2.67
