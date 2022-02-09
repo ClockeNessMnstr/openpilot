@@ -139,10 +139,14 @@
 | Nissan    | X-Trail 2017                    | ProPILOT          | Stock            | 0mph               | 0mph         |
 | SEAT      | Ateca 2018                      | Driver Assistance | Stock            | 0mph               | 0mph         |
 | SEAT      | Leon 2014-2020                  | Driver Assistance | Stock            | 0mph               | 0mph         |
-| Subaru    | Ascent 2019                     | EyeSight          | Stock            | 0mph               | 0mph         |
+| Subaru    | Ascent 2019-20                  | EyeSight          | Stock            | 0mph               | 0mph         |
 | Subaru    | Crosstrek 2018-20               | EyeSight          | Stock            | 0mph               | 0mph         |
-| Subaru    | Forester 2019-21                | EyeSight          | Stock            | 0mph               | 0mph         |
-| Subaru    | Impreza 2017-19                 | EyeSight          | Stock            | 0mph               | 0mph         |
+| Subaru    | Crosstrek Hybrid 2020           | EyeSight          | Stock            | 0mph               | 0mph         |
+| Subaru    | Forester 2017-21                | EyeSight          | Stock            | 0mph               | 0mph         |
+| Subaru    | Impreza 2017-20                 | EyeSight          | Stock            | 0mph               | 0mph         |
+| Subaru    | Legacy 2015-18                  | EyeSight          | Stock            | 0mph               | 0mph         |
+| Subaru    | Levorg 2016                     | EyeSight          | Stock            | 0mph               | 0mph         |
+| Subaru    | Outback 2015-19                 | EyeSight          | Stock            | 0mph               | 0mph         |
 | Škoda     | Kamiq 2021<sup>2</sup>          | Driver Assistance | Stock            | 0mph               | 0mph         |
 | Škoda     | Karoq 2019                      | Driver Assistance | Stock            | 0mph               | 0mph         |
 | Škoda     | Kodiaq 2018-19                  | Driver Assistance | Stock            | 0mph               | 0mph         |
