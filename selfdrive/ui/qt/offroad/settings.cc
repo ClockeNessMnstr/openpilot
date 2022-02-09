@@ -65,6 +65,19 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       "In this mode openpilot will ignore lanelines and just drive how it thinks a human would.",
       "../assets/offroad/icon_road.png",
     },
+    {
+      "ManualParkingBrakeSNGToggle",
+      "Subaru Manual PB Stop and Go",
+      "Experimental feature to enable stop and go for Subaru Global models with manual handbrake. Models with electric parking brake should keep this disabled.",
+      "../assets/offroad/icon_speed_limit.png",
+    },
+    {
+      "DisableDisengageOnGasToggle",
+      "Disable Disengage On Gas Press",
+      "Unsafe option to disable openpilot disengage on gas pedal press. For use only for WIP models which do not support disengage on gas pedal press yet",
+      "../assets/offroad/icon_speed_limit.png",
+    },
+
 #ifdef ENABLE_MAPS
     {
       "NavSettingTime24h",

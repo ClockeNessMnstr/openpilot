@@ -1,4 +1,5 @@
 import os
+import time
 from common.params import Params
 from common.basedir import BASEDIR
 from selfdrive.version import is_comma_remote, is_tested_branch
@@ -168,6 +169,11 @@ def fingerprint(logcan, sendcan):
 
 def get_car(logcan, sendcan):
   candidate, fingerprints, vin, car_fw, source, exact_match = fingerprint(logcan, sendcan)
+
+  if candidate is None:
+    cloudlog.warning("no matching fingerprints, retrying: : %r", fingerprints)
+    time.sleep(10)
+    candidate, fingerprints, vin, car_fw, source, exact_match = fingerprint(logcan, sendcan)
 
   if candidate is None:
     cloudlog.warning("car doesn't match any fingerprints: %r", fingerprints)
