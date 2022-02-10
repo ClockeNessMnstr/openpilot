@@ -390,7 +390,7 @@ static void driver_cam_auto_exposure(CameraState *c, SubMaster &sm) {
   if (Hardware::TICI()) {
     x_offset = 630, y_offset = 156;
     frame_width = 668, frame_height = frame_width / 1.33;
-    def_rect = {96, 1832, 2, 242, 1148, 4};
+    def_rect = {896, 2632, 2, 242, 1148, 4};
   } else {
     def_rect = {is_rhd ? 0 : b->rgb_width * 3 / 5, is_rhd ? b->rgb_width * 2 / 5 : b->rgb_width, 2,
                 b->rgb_height / 3, b->rgb_height, 1};
