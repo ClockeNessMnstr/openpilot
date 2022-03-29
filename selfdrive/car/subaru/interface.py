@@ -42,36 +42,16 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20.], [0., 20.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.0025, 0.1], [0.00025, 0.01]]
 
-    if candidate == CAR.IMPREZA:
-      ret.mass = 1568. + STD_CARGO_KG
+    if candidate == CAR.IMPREZA or candidate == CAR.CROSSTREK_2020H or candidate == CAR.IMPREZA_2020:
+      ret.safetyConfigs[0].safetyParam = 2 # increase limit on some crosstrek / impreza
+      ret.mass = 1480. + STD_CARGO_KG
       ret.wheelbase = 2.67
       ret.centerToFront = ret.wheelbase * 0.5
       ret.steerRatio = 15
       ret.steerActuatorDelay = 0.4   # end-to-end angle controller
-      ret.lateralTuning.pid.kf = 0.00005
+      ret.lateralTuning.pid.kf = 0.000033333
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20.], [0., 20.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.2, 0.3], [0.02, 0.03]]
-
-    if candidate == CAR.IMPREZA_2020:
-      ret.mass = 1480. + STD_CARGO_KG
-      ret.wheelbase = 2.67
-      ret.centerToFront = ret.wheelbase * 0.5
-      ret.steerRatio = 13
-      ret.steerActuatorDelay = 0.1   # end-to-end angle controller
-      ret.steerRateCost = 1
-      ret.lateralTuning.pid.kf = 0.00003
-      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 10., 20., 30.], [0., 10., 20., 30.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.01, 0.05, 0.2, 0.21], [0.0010, 0.004, 0.008, 0.009]]
-
-    if candidate == CAR.CROSSTREK_2020H:
-      ret.mass = 1568. + STD_CARGO_KG
-      ret.wheelbase = 2.67
-      ret.centerToFront = ret.wheelbase * 0.5
-      ret.steerRatio = 17           # learned, 14 stock
-      ret.steerActuatorDelay = 0.1
-      ret.lateralTuning.pid.kf = 0.00005
-      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 14., 23.], [0., 14., 23.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.045, 0.042, 0.20], [0.04, 0.035, 0.045]]
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.1333, 0.2], [0.01333, 0.02]]
 
     if candidate == CAR.FORESTER:
       ret.mass = 1568. + STD_CARGO_KG
