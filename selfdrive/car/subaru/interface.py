@@ -29,8 +29,10 @@ class CarInterface(CarInterfaceBase):
 
     #ret.dashcamOnly = candidate in PREGLOBAL_CARS
 
-    ret.steerRateCost = 0.7
+    ret.steerRateCost = 2.0
     ret.steerLimitTimer = 0.4
+    stiffness_front = 1.0
+    stiffness_rear = 1.0
 
     if candidate == CAR.ASCENT:
       ret.mass = 2031. + STD_CARGO_KG
@@ -42,26 +44,35 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20.], [0., 20.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.0025, 0.1], [0.00025, 0.01]]
 
-    if candidate == CAR.IMPREZA or candidate == CAR.CROSSTREK_2020H or candidate == CAR.IMPREZA_2020:
+    if candidate == CAR.IMPREZA or candidate == CAR.CROSSTREK_2020H:
       ret.safetyConfigs[0].safetyParam = 2 # increase limit on some crosstrek / impreza
-      ret.mass = 1480. + STD_CARGO_KG
+    if candidate == CAR.IMPREZA or candidate == CAR.CROSSTREK_2020H or candidate == CAR.IMPREZA_2020:
+      ret.mass = 1560. + STD_CARGO_KG
       ret.wheelbase = 2.67
       ret.centerToFront = ret.wheelbase * 0.5
-      ret.steerRatio = 15
-      ret.steerActuatorDelay = 0.4   # end-to-end angle controller
-      ret.lateralTuning.pid.kf = 0.000033333
-      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20.], [0., 20.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.1333, 0.2], [0.01333, 0.02]]
+      ret.steerRatio = 13.5
+      stiffness_front = 0.500
+      stiffness_rear = 0.600
+      ret.steerActuatorDelay = 0.18  # torque apply delay (.2 + .2 offset)
+      ret.lateralTuning.init('discrete')
+      p = 0.160
+      i = 0.240
+      d = 0.008
+      ret.lateralTuning.discrete.gains = [i, p, d]
 
     if candidate == CAR.FORESTER:
-      ret.mass = 1568. + STD_CARGO_KG
+      ret.mass = 1620. + STD_CARGO_KG
       ret.wheelbase = 2.67
       ret.centerToFront = ret.wheelbase * 0.5
-      ret.steerRatio = 17           # learned, 14 stock
+      ret.steerRatio = 13.5
+      stiffness_front = 0.650
+      stiffness_rear = 0.650
       ret.steerActuatorDelay = 0.1
-      ret.lateralTuning.pid.kf = 0.000038
-      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 14., 23.], [0., 14., 23.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.01, 0.065, 0.2], [0.001, 0.015, 0.025]]
+      ret.lateralTuning.init('discrete')
+      p = 0.080
+      i = 0.160
+      d = 0.006
+      ret.lateralTuning.discrete.gains = [i, p, d]
 
     if candidate == CAR.OUTBACK:
       ret.mass = 1568. + STD_CARGO_KG
@@ -144,6 +155,8 @@ class CarInterface(CarInterfaceBase):
     # TODO: start from empirically derived lateral slip stiffness for the civic and scale by
     # mass and CG position, so all cars will have approximately similar dyn behaviors
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront)
+    ret.tireStiffnessFront *= stiffness_front
+    ret.tireStiffnessRear *= stiffness_rear
 
     return ret
 
