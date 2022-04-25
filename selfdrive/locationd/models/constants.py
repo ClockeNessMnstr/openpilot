@@ -35,10 +35,13 @@ class ObservationKind:
   ROAD_FRAME_YAW_RATE = 25  # [rad/s]
   STEER_ANGLE = 26  # [rad]
   ANGLE_OFFSET_FAST = 27  # [rad]
-  STIFFNESS = 28  # [-]
-  STEER_RATIO = 29  # [-]
+  STIFFNESS_FRONT = 28  # [-]
+  STIFFNESS_REAR = 29  # [-]
   ROAD_FRAME_X_SPEED = 30  # (x) [m/s]
   ROAD_ROLL = 31  # [rad]
+  FRONT_RATIO = 32  # [-]
+  MASS_RATIO = 33  # [-]
+  MOMENT_RATIO = 34  # [-]
 
   names = [
     'Unknown',
@@ -68,10 +71,13 @@ class ObservationKind:
     'Road Frame yaw rate',
     'Steer Angle',
     'Fast Angle Offset',
-    'Stiffness',
-    'Steer Ratio',
+    'Stiffness Front',
+    'Stiffness Rear',
     'Road Frame x speed',
     'Road Roll',
+    'Front to Rear Factor',
+    'Mass Factor',
+    'Moment Factor',
   ]
 
   @classmethod
