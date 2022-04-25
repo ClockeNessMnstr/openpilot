@@ -1,4 +1,11 @@
-2022-02-07
+2022-04-24
+==========
+* 
+* Updates to EKF / Learner model.
+* Will take a minute to re-learn steering offset at first. 
+* 
+* find me on discord with any issues/questions: @clockenessmnstr 
+
 ==========
 * Fix for preglobal models FPv2 issue / @martinl
 * Fix for disengage on gas LKAS fault / @martinl
