@@ -29,23 +29,26 @@ class VehicleModel:
       CP: Car Parameters
     """
     # for math readability, convert long names car params into short names
-    self.m = CP.mass
-    self.j = CP.rotationalInertia
+    self.m_orig = CP.mass
+    self.j_orig = CP.rotationalInertia
     self.l = CP.wheelbase
-    self.aF = CP.centerToFront
-    self.aR = CP.wheelbase - CP.centerToFront
+    self.aF_orig = CP.centerToFront
     self.chi = CP.steerRatioRear
 
     self.cF_orig = CP.tireStiffnessFront
     self.cR_orig = CP.tireStiffnessRear
-    self.update_params(1.0, CP.steerRatio)
+    self.update_params(1.0, 1.0, 1.0, 1.0, 1.0)
+    self.sR = CP.steerRatio
 
-  def update_params(self, stiffness_factor: float, steer_ratio: float) -> None:
+  def update_params(self, stiffness_front: float, stiffness_rear: float, front_ratio: float, mass_ratio: float, moment_ratio: float) -> None:
     """Update the vehicle model with a new stiffness factor and steer ratio"""
-    self.cF = stiffness_factor * self.cF_orig
-    self.cR = stiffness_factor * self.cR_orig
-    self.sR = steer_ratio
-
+    self.cF = stiffness_front * self.cF_orig
+    self.cR = stiffness_rear * self.cR_orig
+    self.aF = self.aF_orig * front_ratio
+    self.aR = (self.l - self.aF)
+    self.m = self.m_orig * mass_ratio
+    self.j = self.j_orig * moment_ratio
+    
   def steady_state_sol(self, sa: float, u: float, roll: float) -> np.ndarray:
     """Returns the steady state solution.
 
