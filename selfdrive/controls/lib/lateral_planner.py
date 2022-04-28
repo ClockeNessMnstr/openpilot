@@ -67,13 +67,21 @@ class LateralPlanner:
       heading_cost = interp(v_ego, [5.0, 10.0], [MPC_COST_LAT.HEADING, 0.0])
       self.lat_mpc.set_weights(path_cost, heading_cost, self.steer_rate_cost)
 
-    y_pts = np.interp(v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(d_path_xyz, axis=1), d_path_xyz[:, 1])
-    heading_pts = np.interp(v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(self.path_xyz, axis=1), self.plan_yaw)
-    self.y_pts = y_pts
-
+    phi_0 = -self.plan_yaw[0]
+    heading_pts = np.interp(v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(self.path_xyz, axis=1), self.plan_yaw) + phi_0
+    
+    R = np.array([[np.cos(phi_0), -np.sin(phi_0), 0],
+                  [np.sin(phi_0),  np.cos(phi_0), 0], 
+                  [0            ,  0            , 1]])
+    d_path_xyz_rot = np.array([np.matmul(R, xyz) for xyz in d_path_xyz[:]])
+    y_pts = np.interp(v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(d_path_xyz_rot, axis=1), d_path_xyz_rot[:, 1])
+    y_0 = -y_pts[0]
+    y_pts += y_0
+    
     assert len(y_pts) == LAT_MPC_N + 1
     assert len(heading_pts) == LAT_MPC_N + 1
-    # self.x0[4] = v_ego
+    self.x0[1] = y_0
+    self.x0[2] = phi_0
     p = np.array([v_ego, CAR_ROTATION_RADIUS])
     self.lat_mpc.run(self.x0,
                      p,
