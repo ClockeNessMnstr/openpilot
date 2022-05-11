@@ -21,7 +21,7 @@ class CarControllerParams:
     self.STEER_DELTA_UP = 50           # torque increase per refresh, 0.8s to max
     self.STEER_DELTA_DOWN = 70         # torque decrease per refresh
     self.STEER_DRIVER_ALLOWANCE = 60   # allowed driver torque before start limiting
-    self.STEER_DRIVER_MULTIPLIER = 10  # weight driver torque heavily
+    self.STEER_DRIVER_MULTIPLIER = 20  # weight driver torque heavily
     self.STEER_DRIVER_FACTOR = 1       # from dbc
 
 
