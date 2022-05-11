@@ -1224,7 +1224,7 @@ static void ar0231_process_registers(MultiCameraState *s, CameraState *c, cereal
 static void driver_cam_auto_exposure(CameraState *c, SubMaster &sm) {
   struct ExpRect {int x1, x2, x_skip, y1, y2, y_skip;};
   const CameraBuf *b = &c->buf;
-  static ExpRect rect = {96, 1832, 2, 242, 1148, 4};
+  static ExpRect rect = {896, 2632, 2, 242, 1148, 4};
   camera_autoexposure(c, set_exposure_target(b, rect.x1, rect.x2, rect.x_skip, rect.y1, rect.y2, rect.y_skip));
 }
 
