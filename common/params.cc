@@ -137,6 +137,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"LastUpdateException", CLEAR_ON_MANAGER_START},
     {"LastUpdateTime", PERSISTENT},
     {"LiveParameters", PERSISTENT},
+    {"ManualParkingBrakeSNGToggle", PERSISTENT},
     {"NavDestination", CLEAR_ON_MANAGER_START | CLEAR_ON_IGNITION_OFF},
     {"NavSettingTime24h", PERSISTENT},
     {"NavdRender", PERSISTENT},

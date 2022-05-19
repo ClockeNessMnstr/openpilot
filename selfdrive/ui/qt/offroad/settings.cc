@@ -64,6 +64,12 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       "../assets/offroad/icon_road.png",
     },
     {
+      "ManualParkingBrakeSNGToggle",
+      "Subaru Manual PB Stop and Go",
+      "Experimental feature to enable stop and go for Subaru Global models with manual handbrake. Models with electric parking brake should keep this disabled.",
+      "../assets/offroad/icon_speed_limit.png",
+    },
+    {
       "DisengageOnAccelerator",
       "Disengage On Accelerator Pedal",
       "When enabled, pressing the accelerator pedal will disengage openpilot.",
