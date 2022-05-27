@@ -150,11 +150,15 @@ if __name__ == "__main__":
                       help="Updates reference logs using current commit")
   parser.add_argument("--upload-only", action="store_true",
                       help="Skips testing processes and uploads logs from previous test run")
+  parser.add_argument("--use-cache", action="store_true",
+                      help="Caches log files")
   parser.add_argument("-j", "--jobs", type=int, default=1)
   args = parser.parse_args()
 
   full_test = all(len(x) == 0 for x in (args.whitelist_procs, args.whitelist_cars, args.blacklist_procs, args.blacklist_cars, args.ignore_fields, args.ignore_msgs))
   upload = args.update_refs or args.upload_only
+  if args.use_cache:
+    os.environ["FILEREADER_CACHE"] = "1"
   os.makedirs(os.path.dirname(FAKEDATA), exist_ok=True)
 
   if upload:
@@ -180,9 +184,14 @@ if __name__ == "__main__":
 
   with concurrent.futures.ProcessPoolExecutor(max_workers=args.jobs) as pool:
     if not args.upload_only:
+      download_segments: Any = []
+      for car_brand, segment in segments:
+        if not ((len(args.whitelist_cars) and car_brand.upper() not in args.whitelist_cars) or
+            (not len(args.whitelist_cars) and car_brand.upper() in args.blacklist_cars)):
+          download_segments.append(segment)
       lreaders: Any = {}
-      p1 = pool.map(get_logreader, [seg for car, seg in segments])
-      for (segment, lr) in tqdm(p1, desc="Getting Logs", total=len(segments)):
+      p1 = pool.map(get_logreader, download_segments)
+      for (segment, lr) in tqdm(p1, desc="Getting Logs", total=len(download_segments)):
         lreaders[segment] = lr
 
     pool_args: Any = []
