@@ -165,6 +165,7 @@ def main(sm=None, pm=None):
       liveParameters.stiffnessFrontStd = float(P[States.STIFFNESS_FRONT])
       liveParameters.stiffnessRearStd = float(P[States.STIFFNESS_REAR])
       liveParameters.angleOffsetFastStd = float(P[States.ANGLE_OFFSET])
+      liveParameters.stdDump = [float(p) for p in P]
 
       msg.valid = sm.all_checks()
 
