@@ -1,9 +1,8 @@
 import numpy as np
-from common.realtime import sec_since_boot, DT_MDL
-from common.numpy_fast import interp
+from common.realtime import sec_since_boot
 from selfdrive.swaglog import cloudlog
-from selfdrive.controls.lib.lateral_mpc_lib.lat_mpc import LateralMpc
-from selfdrive.controls.lib.drive_helpers import CONTROL_N, MPC_COST_LAT, LAT_MPC_N, CAR_ROTATION_RADIUS
+from selfdrive.controls.lib.lateral_mpc_lib.lat_mpc import LateralMpc, X_DIM
+from selfdrive.controls.lib.drive_helpers import CONTROL_N, MPC_COST_LAT, LAT_MPC_N
 from selfdrive.controls.lib.lane_planner import LanePlanner, TRAJECTORY_SIZE
 from selfdrive.controls.lib.desire_helper import DesireHelper
 import cereal.messaging as messaging
@@ -11,25 +10,27 @@ from cereal import log
 
 
 class LateralPlanner:
-  def __init__(self, CP, use_lanelines=True, wide_camera=False):
+  def __init__(self, CP, use_lanelines=True, wide_camera=False, use_model_speed=True):
     self.use_lanelines = use_lanelines
     self.LP = LanePlanner(wide_camera)
     self.DH = DesireHelper()
 
     self.last_cloudlog_t = 0
-    self.steer_rate_cost = CP.steerRateCost
     self.solution_invalid_cnt = 0
 
     self.path_xyz = np.zeros((TRAJECTORY_SIZE, 3))
-    self.path_xyz_stds = np.ones((TRAJECTORY_SIZE, 3))
     self.plan_yaw = np.zeros((TRAJECTORY_SIZE,))
     self.t_idxs = np.arange(TRAJECTORY_SIZE)
     self.y_pts = np.zeros(TRAJECTORY_SIZE)
+    
+    self.use_model_speed = use_model_speed
+    self.rotation_radius = CP.centerToFront # - 0.5 # 0.5 ~= commaToFront
 
     self.lat_mpc = LateralMpc()
-    self.reset_mpc(np.zeros(4))
+    self.reset_mpc(np.zeros(X_DIM))
+    self.lat_mpc.set_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.HEADING, MPC_COST_LAT.CURV, MPC_COST_LAT.CURV_RATE)
 
-  def reset_mpc(self, x0=np.zeros(4)):
+  def reset_mpc(self, x0=np.zeros(X_DIM)):
     self.x0 = x0
     self.lat_mpc.reset(x0=self.x0)
 
@@ -44,8 +45,20 @@ class LateralPlanner:
       self.path_xyz = np.column_stack([md.position.x, md.position.y, md.position.z])
       self.t_idxs = np.array(md.position.t)
       self.plan_yaw = list(md.orientation.z)
-    if len(md.position.xStd) == TRAJECTORY_SIZE:
-      self.path_xyz_stds = np.column_stack([md.position.xStd, md.position.yStd, md.position.zStd])
+      plan_yaw_rate = list(md.orientationRate.z)
+      
+      self.speed_forward = np.linalg.norm(np.column_stack([md.velocity.x, md.velocity.y, md.velocity.z]), axis=1)
+      self.plan_curvature = plan_yaw_rate / self.speed_forward
+      
+      self.plan_distance_forward = ((self.speed_forward[1:] + self.speed_forward[:-1]) / 2) * (self.t_idxs[1:] - self.t_idxs[:-1])
+      self.plan_distance_forward = np.cumsum(np.insert(self.plan_distance_forward, 0, 0))
+      if not self.use_model_speed:
+        self.speed_forward = np.repeat(v_ego, len(self.speed_forward))
+      self.distance_forward = ((self.speed_forward[1:] + self.speed_forward[:-1]) / 2) * (self.t_idxs[1:] - self.t_idxs[:-1])
+      self.distance_forward = np.cumsum(np.insert(self.distance_forward, 0, 0))
+      
+      self.distance_forward = self.distance_forward[:LAT_MPC_N + 1]
+      self.speed_forward = self.speed_forward[:LAT_MPC_N + 1]
 
     # Lane change logic
     lane_change_prob = self.LP.l_lane_change_prob + self.LP.r_lane_change_prob
@@ -57,36 +70,30 @@ class LateralPlanner:
       self.LP.rll_prob *= self.DH.lane_change_ll_prob
 
     # Calculate final driving path and set MPC costs
-    if self.use_lanelines:
-      d_path_xyz = self.LP.get_d_path(v_ego, self.t_idxs, self.path_xyz)
-      self.lat_mpc.set_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.HEADING, self.steer_rate_cost)
-    else:
-      d_path_xyz = self.path_xyz
-      # Heading cost is useful at low speed, otherwise end of plan can be off-heading
-      heading_cost = interp(v_ego, [5.0, 10.0], [MPC_COST_LAT.HEADING, 0.15])
-      self.lat_mpc.set_weights(MPC_COST_LAT.PATH, heading_cost, self.steer_rate_cost)
+    d_path_xyz = self.path_xyz if not self.use_lanelines else self.LP.get_d_path(self.speed_forward[0], self.t_idxs, self.path_xyz)
+    
+    low_speed = 5 # hold costs at this speed when stopping/starting
+    rotation_radius = np.interp(self.speed_forward, [0, low_speed], [0, self.rotation_radius])
+    low_speed_factor = np.interp(self.speed_forward, [0, low_speed], [low_speed, 0])
+    
+    # TODO save path history over length of rotation radius and prepend to plan before 0
+    self.y_pts = np.interp(self.distance_forward, self.plan_distance_forward, d_path_xyz[:, 1])
+    heading_pts = np.interp(self.distance_forward - rotation_radius, self.plan_distance_forward, self.plan_yaw)
+    curv_pts = np.interp(self.distance_forward - rotation_radius, self.plan_distance_forward, self.plan_curvature)
 
-    y_pts = np.interp(v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(d_path_xyz, axis=1), d_path_xyz[:, 1])
-    heading_pts = np.interp(v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(self.path_xyz, axis=1), self.plan_yaw)
-    self.y_pts = y_pts
-
-    assert len(y_pts) == LAT_MPC_N + 1
+    assert len(self.y_pts) == LAT_MPC_N + 1
     assert len(heading_pts) == LAT_MPC_N + 1
-    # self.x0[4] = v_ego
-    p = np.array([v_ego, CAR_ROTATION_RADIUS])
-    self.lat_mpc.run(self.x0,
-                     p,
-                     y_pts,
-                     heading_pts)
-    # init state for next
-    self.x0[3] = interp(DT_MDL, self.t_idxs[:LAT_MPC_N + 1], self.lat_mpc.x_sol[:, 3])
+    assert len(curv_pts) == LAT_MPC_N + 1
+    self.x0[1] = rotation_radius[0]*np.sin(heading_pts[0])
+    self.x0[3] = measured_curvature
+    p = np.column_stack([self.speed_forward, rotation_radius, low_speed_factor])
+    self.lat_mpc.run(self.x0, p, self.y_pts, heading_pts, curv_pts, None)
 
     #  Check for infeasible MPC solution
     mpc_nans = np.isnan(self.lat_mpc.x_sol[:, 3]).any()
     t = sec_since_boot()
     if mpc_nans or self.lat_mpc.solution_status != 0:
       self.reset_mpc()
-      self.x0[3] = measured_curvature
       if t > self.last_cloudlog_t + 5.0:
         self.last_cloudlog_t = t
         cloudlog.warning("Lateral mpc - nan: True")
