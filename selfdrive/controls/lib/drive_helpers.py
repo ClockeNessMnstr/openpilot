@@ -15,7 +15,6 @@ V_CRUISE_ENABLE_MIN = 40  # kph
 LAT_MPC_N = 16
 LON_MPC_N = 32
 CONTROL_N = 17
-CAR_ROTATION_RADIUS = 0.0
 
 # EU guidelines
 MAX_LATERAL_JERK = 5.0
@@ -35,8 +34,8 @@ CRUISE_INTERVAL_SIGN = {
 class MPC_COST_LAT:
   PATH = 1.0
   HEADING = 1.0
-  STEER_RATE = 1.0
-
+  CURV = 1.0
+  CURV_RATE = 1.0
 
 def rate_limit(new_value, last_value, dw_step, up_step):
   return clip(new_value, last_value + dw_step, last_value + up_step)
