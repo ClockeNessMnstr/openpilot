@@ -3,6 +3,7 @@ from selfdrive.controls.lib.latcontrol import LatControl, MIN_STEER_SPEED
 from selfdrive.controls.lib.discrete import DiscreteController
 from common.realtime import DT_CTRL
 from common.numpy_fast import clip
+from common.opedit_mini import read_param, write_param
 from cereal import log
 
 class LatControlTorque(LatControl):
@@ -18,10 +19,13 @@ class LatControlTorque(LatControl):
     Z = [[[1, 1], [1, -1]], [[1], [1]], [[1, -1], [1-1j, 1+1j    ]]]
     T = [[[1, 0], [    2]], [[1], [1]], [[2    ], [1   , (1/N)*2j]]]
     self.pid = DiscreteController(gains, Z, T, rate=(1 / DT_CTRL))
+    
+    write_param('gains', gains)
 
   def reset(self):
     super().reset()
     self.pid.reset()
+    self.pid.update_gains(read_param('gains')[0])
 
   def update(self, active, CS, VM, params, last_actuators, desired_curvature, desired_curvature_rate, llk):
     pid_log = log.ControlsState.LateralTorqueState.new_message()

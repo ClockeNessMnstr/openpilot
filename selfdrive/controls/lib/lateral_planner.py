@@ -4,6 +4,7 @@ from selfdrive.swaglog import cloudlog
 from selfdrive.controls.lib.lateral_mpc_lib.lat_mpc import LateralMpc, X_DIM
 from selfdrive.controls.lib.drive_helpers import CONTROL_N, MPC_COST_LAT, LAT_MPC_N
 from selfdrive.controls.lib.lane_planner import LanePlanner, TRAJECTORY_SIZE
+from common.opedit_mini import read_param, write_param
 import cereal.messaging as messaging
 
 
@@ -15,6 +16,8 @@ class LateralPlanner:
     self.lat_mpc = LateralMpc()
     self.lat_mpc.set_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.HEADING, MPC_COST_LAT.CURV, MPC_COST_LAT.CURV_RATE)
     self.reset_mpc(np.zeros(X_DIM))
+
+    write_param('weights', [MPC_COST_LAT.PATH, MPC_COST_LAT.HEADING, MPC_COST_LAT.CURV, MPC_COST_LAT.CURV_RATE])
 
     self.y_pts = np.zeros(TRAJECTORY_SIZE)
     assert(TRAJECTORY_SIZE > LAT_MPC_N)
@@ -51,6 +54,9 @@ class LateralPlanner:
     rotation_radius = np.repeat(self.rotation_radius, LAT_MPC_N + 1)
     p = np.column_stack([speed_forward[:LAT_MPC_N + 1], rotation_radius])
     self.lat_mpc.run(self.x0, p, self.y_pts, heading_pts, curv_pts, None)
+
+    weights = read_param('weights')[0]
+    self.lat_mpc.set_weights(weights[0], weights[1], weights[2], weights[3])
 
     #  Check for infeasible MPC solution
     mpc_nans = np.isnan(self.lat_mpc.x_sol[:, 3]).any() or self.lat_mpc.solution_status != 0
