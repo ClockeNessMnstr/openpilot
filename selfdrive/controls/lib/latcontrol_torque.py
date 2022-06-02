@@ -12,7 +12,7 @@ class LatControlTorque(LatControl):
     
     i = 2.0
     p = 2.0
-    d = 0.1
+    d = 0.0
     gains = [g / CP.lateralTuning.torque.maxLatAccel for g in [i, p, d]]
     
     N = 10 # Filter coefficient. corner frequency in rad/s. 20 = ~3.18hz    
