@@ -55,7 +55,7 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.5
       ret.steerRatio = 13.5
       ret.lateralTuning.init('torque')
-      ret.lateralTuning.torque.maxLatAccel = 3.2
+      ret.lateralTuning.torque.maxLatAccel = 3.5
       stiffness_front = 0.3829
       stiffness_rear = 0.3848
 
