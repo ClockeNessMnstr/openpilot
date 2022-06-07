@@ -41,17 +41,19 @@ class LateralPlanner:
     self.lat_mpc.set_weights(weights[0], weights[1], weights[2], weights[3])
       
     speed_forward = np.linalg.norm(np.column_stack([md.velocity.x, md.velocity.y, md.velocity.z]), axis=1)[:LAT_MPC_N + 1]
+    x_pts = list(md.position.x)[:LAT_MPC_N + 1]
     self.y_pts = list(md.position.y)[:LAT_MPC_N + 1]
     heading_pts = list(md.orientation.z)[:LAT_MPC_N + 1]
     curv_pts = list(md.orientationRate.z)[:LAT_MPC_N + 1] / speed_forward
 
+    self.x0[0] = self.rotation_radius*np.cos(heading_pts[0])
     self.x0[1] = self.rotation_radius*np.sin(heading_pts[0])
     self.x0[2] = self.rotation_radius*curv_pts[0]
     self.x0[3] = sm['controlsState'].curvature
 
     rotation_radii = np.repeat(self.rotation_radius, LAT_MPC_N + 1)
     p = np.column_stack([speed_forward, rotation_radii])
-    self.lat_mpc.run(self.x0, p, self.y_pts, heading_pts, curv_pts, None)
+    self.lat_mpc.run(self.x0, p, x_pts, self.y_pts, heading_pts, curv_pts, None)
 
     #  Check for infeasible MPC solution
     mpc_nans = np.isnan(self.lat_mpc.x_sol[:, 3]).any() or self.lat_mpc.solution_status != 0

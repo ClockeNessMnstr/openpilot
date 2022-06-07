@@ -20,7 +20,7 @@ X_DIM = 4
 P_DIM = 2
 MODEL_NAME = 'lat'
 ACADOS_SOLVER_TYPE = 'SQP_RTI'
-COST_DIM = 4
+COST_DIM = 5
 
 def gen_lat_model():
   model = AcadosModel()
@@ -79,7 +79,7 @@ def gen_lat_ocp():
   ocp.cost.W = QR
   ocp.cost.W_e = Q
 
-  y_ego, psi_ego, curv_ego = ocp.model.x[1], ocp.model.x[2], ocp.model.x[3]
+  x_ego, y_ego, psi_ego, curv_ego = ocp.model.x[0], ocp.model.x[1], ocp.model.x[2], ocp.model.x[3]
   v_ego_cost = ocp.model.p[0]
   curv_rate = ocp.model.u[0]
 
@@ -88,10 +88,11 @@ def gen_lat_ocp():
   ocp.cost.yref = np.zeros((COST_DIM, ))
   ocp.cost.yref_e = np.zeros((COST_DIM - 1, ))
   costs = [
+    x_ego,
     y_ego,
-    ((v_ego_cost) * psi_ego),
-    ((v_ego_cost)**2 * curv_ego),
-    ((v_ego_cost)**2 * curv_rate)
+    (psi_ego   * (v_ego_cost)),
+    (curv_ego  * (v_ego_cost)**2),
+    (curv_rate * (v_ego_cost)**2)
   ]
   ocp.model.cost_y_expr = vertcat(*costs)
   ocp.model.cost_y_expr_e = vertcat(*costs[:-1])
@@ -144,22 +145,23 @@ class LateralMpc():
     self.cost = 0
 
   def set_weights(self, path_weight, heading_weight, curv_weight, curv_rate_weight):
-    W = np.asfortranarray(np.diag([path_weight, heading_weight, curv_weight, curv_rate_weight]))
+    W = np.asfortranarray(np.diag([path_weight, path_weight, heading_weight, curv_weight, curv_rate_weight]))
     for i in range(N):
       self.solver.cost_set(i, 'W', W)
     #TODO hacky weights to keep behavior the same
     self.solver.cost_set(N, 'W', (3/20.)*W[:COST_DIM - 1,:COST_DIM - 1])
 
-  def run(self, x0, p, y_pts, heading_pts, curv_pts, curv_rate_pts):
+  def run(self, x0, p, x_pts, y_pts, heading_pts, curv_pts, curv_rate_pts):
     x0_cp = np.copy(x0)
     p_cp = np.copy(p)
     self.solver.constraints_set(0, "lbx", x0_cp)
     self.solver.constraints_set(0, "ubx", x0_cp)
     v_ego_cost = p_cp[:, 0]
-    self.yref[:, 0] = y_pts
-    self.yref[:, 1] = heading_pts * (v_ego_cost)
-    self.yref[:, 2] = curv_pts * (v_ego_cost)**2
-    #self.yref[:, 3] = curv_rate_pts * (v_ego_cost)**2
+    self.yref[:, 0] = x_pts
+    self.yref[:, 1] = y_pts
+    self.yref[:, 2] = heading_pts * (v_ego_cost)
+    self.yref[:, 3] = curv_pts * (v_ego_cost)**2
+    #self.yref[:, 4] = curv_rate_pts * (v_ego_cost)**2
     for i in range(N):
       self.solver.cost_set(i, "yref", self.yref[i])
       self.solver.set(i, "p", p_cp[i])
