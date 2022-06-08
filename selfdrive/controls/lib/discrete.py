@@ -56,9 +56,9 @@ class DiscreteController():
     maxlen = 0
     for i in range(len(c)):
       maxlen = maxlen if maxlen >= len(c[i]) else len(c[i])
-    self.c = np.ndarray((len(c), maxlen))
+    self.c = np.zeros((len(c), maxlen))
     for i in range(len(c)):
-      self.c[i] = np.append(np.repeat([0], maxlen-len(c[i])), c[i])
+      self.c[i] = np.append(np.zeros(maxlen-len(c[i])), c[i])
     self.ku = np.array([i / self.a[0] for i in self.a])
     self.update_gains(gains)
     
