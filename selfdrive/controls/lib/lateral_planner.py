@@ -20,7 +20,7 @@ class LateralPlanner:
     self.y_pts = np.zeros(TRAJECTORY_SIZE)
     assert(TRAJECTORY_SIZE > LAT_MPC_N)
     
-    self.rotation_radius = CP.centerToFront - 0.7 # 0.5 ~= commaToFront
+    self.rotation_radius = CP.centerToFront - 0.89 # 0.5 ~= commaToFront
     self.last_cloudlog_t = 0
     self.solution_invalid_cnt = 0
 
