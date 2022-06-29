@@ -25,17 +25,30 @@ def plannerd_thread(sm=None, pm=None):
   lateral_planner = LateralPlanner(CP, use_lanelines=use_lanelines, wide_camera=wide_camera)
 
   if sm is None:
-    sm = messaging.SubMaster(['carState', 'controlsState', 'radarState', 'modelV2'],
+    sm = messaging.SubMaster(['carState', 'controlsState', 'radarState', 'modelV2', 'liveParameters', 'carControl'],
                              poll=['radarState', 'modelV2'], ignore_avg_freq=['radarState'])
 
   if pm is None:
     pm = messaging.PubMaster(['longitudinalPlan', 'lateralPlan'])
-
+  tire_angle, tire_angle_rate = 0, 0,
+  lat_vel, yaw_rate, roll = 0, 0, 0
+  cF, cR, aF, aR = CP.tireStiffnessFront, CP.tireStiffnessRear, CP.centerToFront, CP.wheelbase-CP.centerToFront
+  m, j, k_actuator, k_rest, k_damp = CP.mass, CP.rotationalInertia, CP.kActuator, CP.kRest, CP.kDamp
+  
   while True:
     sm.update()
-
+    if sm.updated['liveParameters']:
+      params = sm['liveParameters']
+      lat_vel, yaw_rate, roll = params.latVel, params.yawRate, params.roll
+      cF, cR, aF, aR, m, j = params.cF, params.cR, params.aF, params.aR, params.m, params.j
+      k_actuator, k_rest, k_damp = params.kActuator, params.kRest, params.kDamp
+      tire_angle, tire_angle_rate = params.tireAngle, params.tireAngleRate
+     
+    #cF, cR, aF, aR = CP.tireStiffnessFront, CP.tireStiffnessRear, CP.centerToFront, CP.wheelbase-CP.centerToFront
+    #m, j, k_actuator, k_rest, k_damp = CP.mass, CP.rotationalInertia, CP.kActuator, CP.kRest, CP.kDamp
+    
     if sm.updated['modelV2']:
-      lateral_planner.update(sm)
+      lateral_planner.update(sm, tire_angle, tire_angle_rate, lat_vel, yaw_rate, roll, cF, cR, aF, aR, m, j, k_actuator, k_rest, k_damp)
       lateral_planner.publish(sm, pm)
       longitudinal_planner.update(sm)
       longitudinal_planner.publish(sm, pm)

@@ -26,6 +26,10 @@ class CarInterface(CarInterfaceBase):
     stiffness_front = 1.0
     stiffness_rear = 1.0
 
+    #ret.kActuator = 0.02
+    #ret.kRest = 0.01
+    #ret.kDamp = 0.1
+
     if candidate == CAR.ASCENT:
       ret.mass = 2031. + STD_CARGO_KG
       ret.wheelbase = 2.89
