@@ -26,8 +26,8 @@ OFFSET_LOWERED_MAX = 8.0
 
 
 class ParamsLearner:
-  def __init__(self, CP, steer_ratio, stiffness_factor, angle_offset, P_initial=None):
-    self.kf = CarKalman(GENERATED_DIR, steer_ratio, stiffness_factor, angle_offset, P_initial)
+  def __init__(self, CP, stiffness_factor, angle_offset, P_initial=None):
+    self.kf = CarKalman(GENERATED_DIR, stiffness_factor, angle_offset, P_initial)
 
     self.kf.filter.set_global("mass", CP.mass)
     self.kf.filter.set_global("rotational_inertia", CP.rotationalInertia)
@@ -35,6 +35,7 @@ class ParamsLearner:
     self.kf.filter.set_global("center_to_rear", CP.wheelbase - CP.centerToFront)
     self.kf.filter.set_global("stiffness_front", CP.tireStiffnessFront)
     self.kf.filter.set_global("stiffness_rear", CP.tireStiffnessRear)
+    self.kf.filter.set_global("steer_ratio", CP.steerRatio)
 
     self.active = False
 
@@ -80,15 +81,6 @@ class ParamsLearner:
                                       ObservationKind.ROAD_ROLL,
                                       np.array([[self.roll]]),
                                       np.array([np.atleast_2d(roll_std**2)]))
-        self.kf.predict_and_observe(t, ObservationKind.ANGLE_OFFSET_FAST, np.array([[0]]))
-
-        # We observe the current stiffness and steer ratio (with a high observation noise) to bound
-        # the respective estimate STD. Otherwise the STDs keep increasing, causing rapid changes in the
-        # states in longer routes (especially straight stretches).
-        stiffness = float(self.kf.x[States.STIFFNESS].item())
-        steer_ratio = float(self.kf.x[States.STEER_RATIO].item())
-        self.kf.predict_and_observe(t, ObservationKind.STIFFNESS, np.array([[stiffness]]))
-        self.kf.predict_and_observe(t, ObservationKind.STEER_RATIO, np.array([[steer_ratio]]))
 
     elif which == 'carState':
       self.steering_angle = msg.steeringAngleDeg
@@ -133,8 +125,6 @@ def main(sm=None, pm=None):
     CP = msg
   cloudlog.info("paramsd got CarParams")
 
-  min_sr, max_sr = 0.5 * CP.steerRatio, 2.0 * CP.steerRatio
-
   params = params_reader.get("LiveParameters")
 
   # Check if car model matches
@@ -147,8 +137,10 @@ def main(sm=None, pm=None):
   # Check if starting values are sane
   if params is not None:
     try:
-      steer_ratio_sane = min_sr <= params['steerRatio'] <= max_sr
-      if not steer_ratio_sane:
+      angle_offset_sane = abs(params.get('angleOffsetAverageDeg')) < 10.0
+      stiffness_sane = 0.2 <= params.get('stiffnessFactor') <= 5.0
+      params_sane = angle_offset_sane and stiffness_sane
+      if not params_sane:
         cloudlog.info(f"Invalid starting values found {params}")
         params = None
     except Exception as e:
@@ -159,7 +151,6 @@ def main(sm=None, pm=None):
   if params is None:
     params = {
       'carFingerprint': CP.carFingerprint,
-      'steerRatio': CP.steerRatio,
       'stiffnessFactor': 1.0,
       'angleOffsetAverageDeg': 0.0,
     }
@@ -174,7 +165,7 @@ def main(sm=None, pm=None):
   if DEBUG:
     pInitial = np.array(params['filterState']['std']) if 'filterState' in params else None
 
-  learner = ParamsLearner(CP, params['steerRatio'], params['stiffnessFactor'], math.radians(params['angleOffsetAverageDeg']), pInitial)
+  learner = ParamsLearner(CP, params['stiffnessFactor'], math.radians(params['angleOffsetAverageDeg']), pInitial)
   angle_offset_average = params['angleOffsetAverageDeg']
   angle_offset = angle_offset_average
   roll = 0.0
@@ -195,12 +186,12 @@ def main(sm=None, pm=None):
       P = np.sqrt(learner.kf.P.diagonal())
       if not all(map(math.isfinite, x)):
         cloudlog.error("NaN in liveParameters estimate. Resetting to default values")
-        learner = ParamsLearner(CP, CP.steerRatio, 1.0, 0.0)
+        learner = ParamsLearner(CP, 1.0, 0.0)
         x = learner.kf.x
 
       angle_offset_average = clip(math.degrees(x[States.ANGLE_OFFSET].item()),
                                   angle_offset_average - MAX_ANGLE_OFFSET_DELTA, angle_offset_average + MAX_ANGLE_OFFSET_DELTA)
-      angle_offset = clip(math.degrees(x[States.ANGLE_OFFSET].item() + x[States.ANGLE_OFFSET_FAST].item()),
+      angle_offset = clip(math.degrees(x[States.ANGLE_OFFSET].item()),
                           angle_offset - MAX_ANGLE_OFFSET_DELTA, angle_offset + MAX_ANGLE_OFFSET_DELTA)
       roll = clip(float(x[States.ROAD_ROLL].item()), roll - ROLL_MAX_DELTA, roll + ROLL_MAX_DELTA)
       roll_std = float(P[States.ROAD_ROLL].item())
@@ -215,7 +206,6 @@ def main(sm=None, pm=None):
       liveParameters = msg.liveParameters
       liveParameters.posenetValid = True
       liveParameters.sensorValid = sensors_valid
-      liveParameters.steerRatio = float(x[States.STEER_RATIO].item())
       liveParameters.stiffnessFactor = float(x[States.STIFFNESS].item())
       liveParameters.roll = roll
       liveParameters.angleOffsetAverageDeg = angle_offset_average
@@ -226,12 +216,9 @@ def main(sm=None, pm=None):
         roll_valid,
         roll_std < ROLL_STD_MAX,
         0.2 <= liveParameters.stiffnessFactor <= 5.0,
-        min_sr <= liveParameters.steerRatio <= max_sr,
       ))
-      liveParameters.steerRatioStd = float(P[States.STEER_RATIO].item())
       liveParameters.stiffnessFactorStd = float(P[States.STIFFNESS].item())
       liveParameters.angleOffsetAverageStd = float(P[States.ANGLE_OFFSET].item())
-      liveParameters.angleOffsetFastStd = float(P[States.ANGLE_OFFSET_FAST].item())
       if DEBUG:
         liveParameters.filterState = log.LiveLocationKalman.Measurement.new_message()
         liveParameters.filterState.value = x.tolist()
@@ -243,7 +230,6 @@ def main(sm=None, pm=None):
       if sm.frame % 1200 == 0:  # once a minute
         params = {
           'carFingerprint': CP.carFingerprint,
-          'steerRatio': liveParameters.steerRatio,
           'stiffnessFactor': liveParameters.stiffnessFactor,
           'angleOffsetAverageDeg': liveParameters.angleOffsetAverageDeg,
         }
