@@ -27,6 +27,8 @@ class CarInterface(CarInterfaceBase):
       ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.subaru)]
       if candidate in GLOBAL_GEN2:
         ret.safetyConfigs[0].safetyParam |= Panda.FLAG_SUBARU_GEN2
+      elif candidate == CAR.IMPREZA:
+        ret.safetyConfigs[0].safetyParam |= Panda.FLAG_SUBARU_2018
 
     ret.steerLimitTimer = 0.4
     ret.steerActuatorDelay = 0.1
@@ -51,12 +53,12 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1568.
       ret.wheelbase = 2.67
       ret.centerToFront = ret.wheelbase * 0.5
-      ret.steerRatio = 15
-      ret.steerActuatorDelay = 0.4   # end-to-end angle controller
+      ret.steerRatio = 13.5
+      ret.steerActuatorDelay = 0.2   # end-to-end angle controller
       ret.lateralTuning.init('pid')
-      ret.lateralTuning.pid.kf = 0.00005
+      ret.lateralTuning.pid.kf = 0.00003
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20.], [0., 20.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.2, 0.3], [0.02, 0.03]]
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.12, 0.18], [0.012, 0.018]]
 
     elif candidate == CAR.IMPREZA_2020:
       ret.mass = 1480.
