@@ -9,9 +9,9 @@ class LatControlTorque(LatControl):
   def __init__(self, CP, CI):
     super().__init__(CP, CI)
 
-    i = 0.21
-    p = 0.14
-    d = 0.007
+    i = 1.0
+    p = 4.0
+    d = 0.2
     gains = [g / CP.lateralTuning.torque.latAccelFactor for g in [i, p, d]]
 
     N = 10 # Filter coefficient. corner frequency in rad/s. 20 = ~3.18hz
