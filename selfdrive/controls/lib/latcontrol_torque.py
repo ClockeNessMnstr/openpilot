@@ -3,6 +3,7 @@ from selfdrive.controls.lib.latcontrol import LatControl, MIN_LATERAL_CONTROL_SP
 from selfdrive.controls.lib.discrete import DiscreteController
 from common.numpy_fast import clip
 from common.realtime import DT_CTRL
+from common.opedit_mini import read_param, write_param
 from cereal import log
 
 class LatControlTorque(LatControl):
@@ -21,6 +22,8 @@ class LatControlTorque(LatControl):
 
     self.torque_params = CP.lateralTuning.torque
 
+    write_param('gains', gains)
+
   def update_live_torque_params(self, latAccelFactor, latAccelOffset, friction):
     self.torque_params.latAccelFactor = latAccelFactor
     self.torque_params.latAccelOffset = latAccelOffset
@@ -29,6 +32,11 @@ class LatControlTorque(LatControl):
   def reset(self):
     super().reset()
     self.pid.reset()
+
+    gains = read_param('gains')
+    if gains[1]:
+      gains = gains[0]
+      self.pid.update_gains(gains)
 
   def update(self, active, CS, VM, params, last_actuators, steer_limited, desired_curvature, desired_curvature_rate, llk):
     pid_log = log.ControlsState.LateralTorqueState.new_message()

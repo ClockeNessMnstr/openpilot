@@ -7,6 +7,7 @@ from openpilot.selfdrive.controls.lib.lateral_mpc_lib.lat_mpc import LateralMpc
 from openpilot.selfdrive.controls.lib.lateral_mpc_lib.lat_mpc import N as LAT_MPC_N
 from openpilot.selfdrive.controls.lib.drive_helpers import CONTROL_N, MIN_SPEED, get_speed_error
 from openpilot.selfdrive.controls.lib.desire_helper import DesireHelper
+from common.opedit_mini import read_param, write_param
 import cereal.messaging as messaging
 from cereal import log
 
@@ -34,6 +35,8 @@ class LateralPlanner:
     self.factor2 = (CP.centerToFront * CP.mass) / (CP.wheelbase * CP.tireStiffnessRear)
     self.last_cloudlog_t = 0
     self.solution_invalid_cnt = 0
+
+    write_param('weights', [PATH_COST, LATERAL_MOTION_COST, LATERAL_ACCEL_COST, LATERAL_JERK_COST, STEERING_RATE_COST])
 
     self.path_xyz = np.zeros((TRAJECTORY_SIZE, 3))
     self.velocity_xyz = np.zeros((TRAJECTORY_SIZE, 3))
@@ -85,6 +88,11 @@ class LateralPlanner:
     self.lat_mpc.set_weights(PATH_COST, LATERAL_MOTION_COST,
                              LATERAL_ACCEL_COST, LATERAL_JERK_COST,
                              STEERING_RATE_COST)
+
+    weights = read_param('weights')
+    if weights[1]:
+      weights = weights[0]
+      self.lat_mpc.set_weights(weights[0], weights[1], weights[2], weights[3], weights[4])
 
     y_pts = self.path_xyz[:LAT_MPC_N+1, 1]
     heading_pts = self.plan_yaw[:LAT_MPC_N+1]
