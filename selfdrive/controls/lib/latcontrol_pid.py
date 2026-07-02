@@ -12,49 +12,45 @@ class LatControlPID(LatControl):
   def __init__(self, CP, CI):
     super().__init__(CP, CI)
 
-    i = 0.25
-    p = 4.0
-    d = 7.5
-    self.gains = [g / 2.5 for g in [i, p, d]]
-    self.Nf = [4.0, 0.5]
+    P0 = 0
+    R_sys = 1 / 1000000
+    R_obs = 1 / 100
 
-    self.update_controllers()
-    self.save_params()
+    self.pid = DiscreteController()
+    num = np.array([[ 1.5, -2.94696296, 1.447481479]])
+    den = np.array([ 1.0, -1.97530864, 0.97530864])
+    self.pid.set_dlti((num, den, DT_CTRL))
+
+    delay = 0.1
+
+    delta = 1.00 # 0, 1, 2
+    sigma = 0.1
+
+    self.pid.set_ref(sigma, delta, P0=P0, R_sys=R_sys, R_obs=R_obs, delay=int(delay / DT_CTRL))
+
+    self.desired = DiscreteController()
+
+    N = 4.0
+    num = np.array([[ N*DT_CTRL, N*DT_CTRL]])
+    den = np.array([ N*DT_CTRL + 2, N*DT_CTRL - 2])
+    self.desired.set_dlti((num, den, DT_CTRL))
+
+    self.read_params()
+    self.running = False
 
   def reset(self):
     super().reset()
     self.pid.reset()
     self.desired.reset()
-    self.read_params()
 
   def save_params(self):
-    write_param('gains', self.gains)
-    write_param('filters', self.Nf)
+    write_param('ke', np.array(self.pid.ke).tolist())
 
   def read_params(self):
-    gains = read_param('gains')
-    if gains[1]:
-      self.gains = gains[0]
-      self.update_gains()
-
-    Nf = read_param('filters')
-    if Nf[1]:
-      self.Nf = Nf[0]
-      self.update_controllers()
-
-  def update_controllers(self):
-    N = self.Nf[0]
-    Z = [[[1, 1], [1-1j, 1+1j    ]]]
-    T = [[[1, 0], [1   , (1/N)*2j]]]
-    self.desired = DiscreteController([1], Z, T, rate=(1 / DT_CTRL))
-
-    N = self.Nf[1]
-    Z = [[[1, 1], [1, -1]], [[1], [1]], [[1, -1], [1-1j, 1+1j    ]]]
-    T = [[[1, 0], [    2]], [[1], [1]], [[2    ], [1   , (1/N)*2j]]]
-    self.pid = DiscreteController(self.gains, Z, T, rate=(1 / DT_CTRL))
-
-  def update_gains(self):
-      self.pid.update_gains(self.gains)
+    ke = read_param('ke')
+    if ke[1]:
+      self.pid.ke = np.atleast_2d(ke[0])
+      self.pid.set_pfd()
 
   def update(self, active, CS, VM, params, steer_limited_by_safety, actuators, desired_curvature, curvature_limited):
     pid_log = log.ControlsState.LateralPIDState.new_message()
@@ -69,18 +65,26 @@ class LatControlPID(LatControl):
     if not active:
       output_torque = 0.0
       self.reset()
+      if self.running:
+        self.save_params()
+        self.running = False
     else:
-      desired = self.desired.update(desired_curvature, self.desired.u[0])
-      error = -(desired - actual_curvature) * CS.vEgo ** 2
-      output_torque = self.pid.update(error, actuators.torque)
+      if not self.running:
+        self.read_params()
+        self.running = True
+
+      desired = self.desired.update(desired_curvature)
+      if CS.steeringPressed:
+        self.pid.kf_hold()
+      output_torque = self.pid.update(-desired * CS.vEgo ** 2, -actual_curvature * CS.vEgo ** 2, actuators.torque)
       output_torque = np.clip(output_torque, -self.steer_max, self.steer_max)
 
       pid_log.active = True
-      pid_log.i = float(self.pid.gains[0]*self.pid.d[0][1])
-      pid_log.p = float(self.pid.gains[1]*self.pid.d[1][1])
-      pid_log.f = float(self.pid.gains[2]*self.pid.d[2][1]) # d-term
+      pid_log.i = float(self.pid.theta[0][0])
+      pid_log.p = float(self.pid.theta[1][0])
+      pid_log.f = float(self.pid.theta[2][0]) # d-term
 
-      pid_log.angleError = float(self.pid.e[1])
+      pid_log.angleError = float(self.pid.e[0][1])
 
       pid_log.output = float(output_torque)
       pid_log.saturated = bool(self._check_saturation(self.steer_max - abs(output_torque) < 1e-3, CS, steer_limited_by_safety, curvature_limited))
