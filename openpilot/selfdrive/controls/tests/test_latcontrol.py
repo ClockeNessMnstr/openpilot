@@ -32,15 +32,17 @@ class TestLatControl:
 
     params = log.LiveParametersData.new_message()
 
+    CO = car.CarControl.Actuators.new_message()
+
     # Saturate for curvature limited and controller limited
     for _ in range(1000):
-      _, _, lac_log = controller.update(True, CS, VM, params, False, 0, True, 0.2)
+      _, _, lac_log = controller.update(True, CS, VM, params, False, CO, 0, True, 0.2)
     assert lac_log.saturated
 
     for _ in range(1000):
-      _, _, lac_log = controller.update(True, CS, VM, params, False, 0, False, 0.2)
+      _, _, lac_log = controller.update(True, CS, VM, params, False, CO, 0, False, 0.2)
     assert not lac_log.saturated
 
     for _ in range(1000):
-      _, _, lac_log = controller.update(True, CS, VM, params, False, 1, False, 0.2)
+      _, _, lac_log = controller.update(True, CS, VM, params, False, CO, 1, False, 0.2)
     assert lac_log.saturated

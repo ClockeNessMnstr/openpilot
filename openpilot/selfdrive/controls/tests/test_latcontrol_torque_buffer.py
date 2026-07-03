@@ -28,10 +28,12 @@ class TestLatControlTorqueBuffer:
     CS.steeringPressed = False
     params = log.LiveParametersData.new_message()
 
+    CO = car.CarControl.Actuators.new_message()
+
     for _ in range(buffer_steps):
-      controller.update(True, CS, VM, params, False, 0.001, False, 0.2)
+      controller.update(True, CS, VM, params, False, CO, 0.001, False, 0.2)
     assert all(val != 0 for val in controller.lat_accel_request_buffer)
 
     for _ in range(buffer_steps):
-      controller.update(False, CS, VM, params, False, 0.0, False, 0.2)
+      controller.update(False, CS, VM, params, False, CO, 0.0, False, 0.2)
     assert all(val == 0 for val in controller.lat_accel_request_buffer)
