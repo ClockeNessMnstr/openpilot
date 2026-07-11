@@ -14,7 +14,7 @@ class LatControlPID(LatControl):
     i = 0.25
     p = 4.0
     d = 7.5
-    self.gains = [g / 2.5 for g in [i, p, d]]
+    self.gains = [g / 3.0 for g in [i, p, d]]
     self.Nf = [4.0, 0.5]
 
     self.update_controllers()
